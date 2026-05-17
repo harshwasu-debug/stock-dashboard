@@ -1,0 +1,7 @@
+# never upload secrets or local junk
+.streamlit/secrets.toml
+__pycache__/
+*.pyc
+st_test.log
+*.log
+.DS_Store
