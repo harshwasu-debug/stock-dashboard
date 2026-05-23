@@ -1,0 +1,47 @@
+name: Daily stock alerts
+
+# Runs Mon-Fri at 11:00 UTC (16:30 IST) - right after Indian market close (15:30 IST)
+on:
+  schedule:
+    - cron: "0 11 * * 1-5"
+  workflow_dispatch:   # also lets you run it manually from GitHub's "Actions" tab
+
+permissions:
+  contents: write     # needed so the job can commit state/last_signals.json back
+
+jobs:
+  alerts:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run the alerts script
+        env:
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          ALERT_RECIPIENTS: ${{ secrets.ALERT_RECIPIENTS }}
+        run: python alerts.py
+
+      - name: Commit updated state (so tomorrow knows what changed)
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ -n "$(git status --porcelain state/last_signals.json)" ]; then
+            git add state/last_signals.json
+            git commit -m "alerts: update saved state [skip ci]"
+            git push
+          else
+            echo "No state changes to commit."
+          fi

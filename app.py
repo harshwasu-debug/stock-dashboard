@@ -17,26 +17,11 @@ future and it does NOT place trades. The final call is always the user's.
 
 import datetime as dt
 
-import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
-import yfinance as yf
 
-# ---------------------------------------------------------------------------
-# Dad's watchlist (NSE). The ".NS" suffix tells Yahoo Finance this is an
-# Indian NSE stock. All tickers verified working on 2026-05-17.
-# To add/remove a stock later, just edit a line here.
-# ---------------------------------------------------------------------------
-STOCKS = {
-    "TCS": "TCS.NS",
-    "Vedanta": "VEDL.NS",
-    "Samvardhana Motherson": "MOTHERSON.NS",
-    "Sterlite Technologies": "STLTECH.NS",
-    "NMDC": "NMDC.NS",
-    "Power Finance Corp (PFC)": "PFC.NS",
-    "REC Ltd": "RECLTD.NS",
-}
+from core import STOCKS, fetch_history, add_indicators, read_signals
 
 PERIODS = {
     "1 Month": "1mo",
@@ -56,137 +41,16 @@ BACKTEST_PERIODS = {
 
 
 # ---------------------------------------------------------------------------
-# Data fetching.
-# Yahoo Finance throttles shared cloud IPs, so we do three things:
-#   1. Use yf.download (the bulk endpoint is friendlier than .history())
-#   2. Retry a few times with growing waits if it gets rate-limited
-#   3. Cache the result for 24 hours so we ask Yahoo as little as possible
-# We always pull ~6 years so the indicators and backtest have enough history,
-# then trim to what the user asked to see.
+# Data fetching with Streamlit caching (24h) wrapped around the shared fetcher
+# in core.py. Same fetcher (with retries) is reused by the alerts script.
 # ---------------------------------------------------------------------------
-import time
-
-
 @st.cache_data(ttl=86400, show_spinner=False)
 def get_full_history(ticker: str) -> pd.DataFrame:
-    last_err = None
-    for attempt, wait in enumerate([0, 3, 8, 15], start=1):
-        if wait:
-            time.sleep(wait)
-        try:
-            df = yf.download(
-                ticker,
-                period="6y",
-                interval="1d",
-                progress=False,
-                auto_adjust=True,
-                threads=False,
-            )
-            if df is not None and not df.empty:
-                # yf.download returns a MultiIndex on columns sometimes -> flatten
-                if isinstance(df.columns, pd.MultiIndex):
-                    df.columns = [c[0] for c in df.columns]
-                df = df.reset_index()
-                df["Date"] = pd.to_datetime(df["Date"]).dt.tz_localize(None)
-                return df
-            last_err = "empty response"
-        except Exception as e:  # rate-limit, network, etc.
-            last_err = str(e)
-    # All attempts failed
-    return pd.DataFrame()
+    return fetch_history(ticker, period="6y")
 
 
 def format_inr(value: float) -> str:
     return f"₹{value:,.2f}"
-
-
-# ---------------------------------------------------------------------------
-# Indicator maths (kept simple and well-known)
-# ---------------------------------------------------------------------------
-def add_indicators(df: pd.DataFrame) -> pd.DataFrame:
-    df = df.copy()
-
-    # Trend: short-term vs long-term average price
-    df["SMA20"] = df["Close"].rolling(20).mean()
-    df["SMA50"] = df["Close"].rolling(50).mean()
-
-    # Strength meter (RSI 14): 0-100. >70 = stretched high, <30 = beaten down
-    delta = df["Close"].diff()
-    gain = delta.clip(lower=0).rolling(14).mean()
-    loss = (-delta.clip(upper=0)).rolling(14).mean()
-    rs = gain / loss.replace(0, np.nan)
-    df["RSI"] = 100 - (100 / (1 + rs))
-
-    # Momentum (MACD): is the move gaining or losing steam
-    ema12 = df["Close"].ewm(span=12, adjust=False).mean()
-    ema26 = df["Close"].ewm(span=26, adjust=False).mean()
-    df["MACD"] = ema12 - ema26
-    df["MACD_signal"] = df["MACD"].ewm(span=9, adjust=False).mean()
-    df["MACD_hist"] = df["MACD"] - df["MACD_signal"]
-
-    return df
-
-
-def read_signals(df: pd.DataFrame) -> dict:
-    """Turn the numbers into a plain-English read."""
-    last = df.iloc[-1]
-
-    trend_up = bool(last["SMA20"] > last["SMA50"]) and bool(
-        last["Close"] > last["SMA50"]
-    )
-
-    rsi = float(last["RSI"]) if pd.notna(last["RSI"]) else 50.0
-    if rsi >= 70:
-        rsi_state = "stretched high (overbought)"
-    elif rsi <= 30:
-        rsi_state = "beaten down (oversold)"
-    else:
-        rsi_state = "in the normal range"
-
-    momentum_up = bool(last["MACD_hist"] > 0)
-    momentum_word = "gaining steam" if momentum_up else "losing steam"
-
-    # One plain sentence + a colour ("good" / "warn" / "bad" / "neutral")
-    if trend_up and rsi < 70 and momentum_up:
-        sentence = (
-            "Uptrend and still has room to run - this looks like a "
-            "POSSIBLE ENTRY zone."
-        )
-        tone = "good"
-    elif trend_up and rsi >= 70:
-        sentence = (
-            "Still in an uptrend but the price is stretched high - be careful "
-            "chasing it; a pullback is possible."
-        )
-        tone = "warn"
-    elif trend_up and not momentum_up:
-        sentence = (
-            "Uptrend, but momentum is fading - hold/watch, and keep an eye "
-            "out for a possible EXIT if it weakens further."
-        )
-        tone = "warn"
-    elif (not trend_up) and rsi <= 30:
-        sentence = (
-            "Downtrend but very beaten down - a bounce is possible, but this "
-            "is risky; not a clear entry."
-        )
-        tone = "warn"
-    else:
-        sentence = (
-            "Downtrend and weak - better to WAIT / stay out until the trend "
-            "turns up again."
-        )
-        tone = "bad"
-
-    return {
-        "trend_up": trend_up,
-        "rsi": rsi,
-        "rsi_state": rsi_state,
-        "momentum_word": momentum_word,
-        "momentum_up": momentum_up,
-        "sentence": sentence,
-        "tone": tone,
-    }
 
 
 def run_backtest(df: pd.DataFrame, lookback_days: int) -> dict:
@@ -283,21 +147,122 @@ st.caption(
 
 # ---- Sidebar controls ----
 with st.sidebar:
-    st.header("Choose what to look at")
-    stock_name = st.selectbox("Stock", list(STOCKS.keys()))
-    period_label = st.selectbox("Chart time range", list(PERIODS.keys()), index=3)
-    chart_style = st.radio("Chart style", ["Candlestick", "Line"], horizontal=True)
-    show_volume = st.checkbox("Show volume", value=True)
-    st.divider()
-    bt_label = st.selectbox(
-        "Backtest range", list(BACKTEST_PERIODS.keys()), index=2
+    st.header("View")
+    mode = st.radio(
+        "Mode",
+        ["Morning Briefing (all stocks)", "Detail (one stock)"],
+        index=0,
     )
     st.divider()
+    if mode == "Detail (one stock)":
+        st.header("Choose what to look at")
+        stock_name = st.selectbox("Stock", list(STOCKS.keys()))
+        period_label = st.selectbox(
+            "Chart time range", list(PERIODS.keys()), index=3
+        )
+        chart_style = st.radio(
+            "Chart style", ["Candlestick", "Line"], horizontal=True
+        )
+        show_volume = st.checkbox("Show volume", value=True)
+        st.divider()
+        bt_label = st.selectbox(
+            "Backtest range", list(BACKTEST_PERIODS.keys()), index=2
+        )
+        st.divider()
     st.caption(
         "Data: Yahoo Finance (free, end-of-day). Prices can be delayed and "
         "are for study, not live trading."
     )
 
+
+# ===========================================================================
+# MORNING BRIEFING - all stocks on one screen
+# ===========================================================================
+def render_morning_briefing() -> None:
+    st.subheader("\U0001F305 Morning Briefing")
+    st.write(
+        "All your stocks at a glance. \U0001F7E2 = looks good, "
+        "\U0001F7E0 = be careful, \U0001F534 = stay out. "
+        "Click any stock in the **Detail** mode (left sidebar) for full charts."
+    )
+
+    tone_emoji = {"good": "\U0001F7E2", "warn": "\U0001F7E0", "bad": "\U0001F534",
+                  "neutral": "⚪"}
+
+    rows = []
+    problems = []
+    progress = st.progress(0.0, text="Loading your stocks...")
+    items = list(STOCKS.items())
+    for i, (name, tkr) in enumerate(items):
+        df = get_full_history(tkr)
+        progress.progress((i + 1) / len(items), text=f"Loaded {name}")
+        if df.empty:
+            problems.append(name)
+            continue
+        df = add_indicators(df)
+        sig = read_signals(df)
+        last_close = df["Close"].iloc[-1]
+        prev_close = df["Close"].iloc[-2] if len(df) > 1 else last_close
+        change_pct = (last_close - prev_close) / prev_close * 100 if prev_close else 0
+        rows.append({
+            "Signal": tone_emoji.get(sig["tone"], "⚪"),
+            "Stock": name,
+            "Last price": f"₹{last_close:,.2f}",
+            "Today": f"{change_pct:+.2f}%",
+            "Trend": "Up" if sig["trend_up"] else "Down",
+            "Strength (0-100)": f"{sig['rsi']:.0f}",
+            "Momentum": sig["momentum_word"].title(),
+            "Plain reading": sig["sentence"],
+        })
+    progress.empty()
+
+    if problems:
+        st.warning(
+            "Yahoo Finance was busy for: " + ", ".join(problems) +
+            ". Refresh in a minute to load them."
+        )
+
+    if rows:
+        df_view = pd.DataFrame(rows)
+        st.dataframe(
+            df_view, use_container_width=True, hide_index=True, height=320,
+            column_config={
+                "Plain reading": st.column_config.TextColumn(width="large"),
+            },
+        )
+        st.divider()
+        st.markdown("**Today's actionables:**")
+        greens = [r for r in rows if r["Signal"] == "\U0001F7E2"]
+        oranges = [r for r in rows if r["Signal"] == "\U0001F7E0"]
+        reds = [r for r in rows if r["Signal"] == "\U0001F534"]
+        if greens:
+            st.success(
+                "\U0001F7E2 **Looks good (possible entry):** "
+                + ", ".join(r["Stock"] for r in greens)
+            )
+        if oranges:
+            st.warning(
+                "\U0001F7E0 **Be careful (watch / possible exit):** "
+                + ", ".join(r["Stock"] for r in oranges)
+            )
+        if reds:
+            st.error(
+                "\U0001F534 **Stay out for now:** "
+                + ", ".join(r["Stock"] for r in reds)
+            )
+
+    st.caption(
+        f"Briefing generated: {dt.datetime.now().strftime('%d %b %Y, %I:%M %p')}. "
+        "A helper, not a fortune teller. The decision is always yours."
+    )
+
+
+# Route by mode
+if mode == "Morning Briefing (all stocks)":
+    render_morning_briefing()
+    st.stop()
+
+# ---- Detail mode below ----
 ticker = STOCKS[stock_name]
 
 with st.spinner(f"Getting data for {stock_name}..."):
