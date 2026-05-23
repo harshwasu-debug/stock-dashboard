@@ -24,6 +24,16 @@ from email.mime.text import MIMEText
 from pathlib import Path
 
 from core import STOCKS, add_indicators, fetch_history, read_signals
+from analyst import (
+    SECTOR_INDEX, BROAD_INDEX,
+    fetch_fundamentals, interpret_fundamentals,
+    fetch_news, news_summary,
+    fetch_earnings_date, days_to,
+    fetch_index_change, compute_play, assemble_brief,
+)
+
+ALERT_CAPITAL = float(os.environ.get("ALERT_CAPITAL", "100000"))
+ALERT_RISK_PCT = float(os.environ.get("ALERT_RISK_PCT", "2.0")) / 100.0
 
 STATE_PATH = Path("state/last_signals.json")
 TONE_EMOJI = {"good": "\U0001F7E2", "warn": "\U0001F7E0",
@@ -52,10 +62,14 @@ def save_current_state(state: dict) -> None:
 
 
 def compute_today() -> dict:
-    """For each stock, fetch + compute current signal. Skip on fetch failure."""
+    """For each stock, fetch + compute current signal + full analyst view.
+    Skip on fetch failure (won't email about it, won't update state)."""
     today = {}
+    # Broad market index fetched once
+    broad_ctx = fetch_index_change(BROAD_INDEX[0])
+
     for name, ticker in STOCKS.items():
-        df = fetch_history(ticker, period="2y")  # enough for SMA50 + RSI
+        df = fetch_history(ticker, period="2y")  # enough for SMA50 + RSI + ATR
         if df.empty:
             print(f"[skip] {name}: fetch failed", file=sys.stderr)
             continue
@@ -64,13 +78,32 @@ def compute_today() -> dict:
         last_close = float(df["Close"].iloc[-1])
         prev_close = float(df["Close"].iloc[-2]) if len(df) > 1 else last_close
         change_pct = (last_close - prev_close) / prev_close * 100 if prev_close else 0
+
+        # Analyst layer
+        fund = fetch_fundamentals(ticker)
+        interp = interpret_fundamentals(fund, last_close)
+        news = fetch_news(ticker, max_items=5)
+        nsum = news_summary(news)
+        edate = fetch_earnings_date(ticker)
+        edays = days_to(edate)
+        sec_sym, sec_name = SECTOR_INDEX.get(name, (None, None))
+        sec_ctx = fetch_index_change(sec_sym) if sec_sym else None
+        play = compute_play(df, capital=ALERT_CAPITAL, risk_pct=ALERT_RISK_PCT)
+        brief = assemble_brief(
+            name, last_close, sig, interp, nsum, sec_ctx, broad_ctx, edays, play
+        )
+
         today[name] = {
             "tone": sig["tone"],
             "sentence": sig["sentence"],
+            "brief": brief,
             "rsi": round(sig["rsi"], 1),
             "trend_up": sig["trend_up"],
             "last_close": round(last_close, 2),
             "change_pct": round(change_pct, 2),
+            "earnings_in_days": edays,
+            "play": play,
+            "sector_name": sec_name,
         }
     return today
 
@@ -86,11 +119,44 @@ def find_flips(prev: dict, today: dict) -> list:
                 "stock": name,
                 "from_tone": old_tone,
                 "to_tone": cur["tone"],
+                "brief": cur.get("brief", cur["sentence"]),
                 "sentence": cur["sentence"],
                 "last_close": cur["last_close"],
                 "change_pct": cur["change_pct"],
+                "play": cur.get("play"),
+                "earnings_in_days": cur.get("earnings_in_days"),
             })
     return flips
+
+
+def _flip_card_html(f: dict) -> str:
+    play_html = ""
+    if f.get("play"):
+        p = f["play"]
+        play_html = (
+            f"<table cellpadding='4' cellspacing='0' style='margin-top:6px;"
+            f"font-size:13px;border-collapse:collapse;'>"
+            f"<tr><td>Entry near:</td><td><b>&#8377;{p['entry']:.2f}</b></td>"
+            f"<td style='padding-left:18px;'>Stop:</td>"
+            f"<td><b>&#8377;{p['stop']:.2f}</b></td></tr>"
+            f"<tr><td>Target:</td><td><b>&#8377;{p['target']:.2f}</b></td>"
+            f"<td style='padding-left:18px;'>Suggested size:</td>"
+            f"<td><b>{p['shares']} shares</b> "
+            f"(&#8377;{p['trade_value']:,.0f})</td></tr></table>"
+        )
+    return (
+        f"<div style='border:1px solid #ddd;border-radius:6px;padding:12px;"
+        f"margin-bottom:14px;'>"
+        f"<div style='font-size:15px;margin-bottom:4px;'>"
+        f"<b>{f['stock']}</b>: "
+        f"{TONE_EMOJI[f['from_tone']]} {TONE_WORDS[f['from_tone']]} "
+        f"&rarr; <b>{TONE_EMOJI[f['to_tone']]} {TONE_WORDS[f['to_tone']]}</b>"
+        f" &nbsp;&middot;&nbsp; &#8377;{f['last_close']:,.2f} "
+        f"({f['change_pct']:+.2f}%)</div>"
+        f"<div style='color:#333;'>{f['brief']}</div>"
+        f"{play_html}"
+        f"</div>"
+    )
 
 
 def render_email_html(flips: list, today: dict, first_run: bool) -> tuple[str, str]:
@@ -100,8 +166,8 @@ def render_email_html(flips: list, today: dict, first_run: bool) -> tuple[str, s
         subject = f"Stock Dashboard alerts are LIVE - today's read ({today_str})"
         intro = (
             "Alerts are now switched on. From tomorrow you will only get an "
-            "email when a stock's signal CHANGES. Here is the read for today "
-            "as a starting point:"
+            "email when a stock's signal CHANGES. Here is today's read on "
+            "every stock as a starting point:"
         )
     elif flips:
         subject = (
@@ -111,56 +177,64 @@ def render_email_html(flips: list, today: dict, first_run: bool) -> tuple[str, s
         )
         intro = "One or more of your stocks changed signal since yesterday:"
     else:
-        return ("", "")  # caller will skip sending
+        return ("", "")
 
-    flip_rows = ""
-    for f in flips:
-        flip_rows += (
-            f"<tr>"
-            f"<td><b>{f['stock']}</b></td>"
-            f"<td>{TONE_EMOJI[f['from_tone']]} {TONE_WORDS[f['from_tone']]}</td>"
-            f"<td>&rarr;</td>"
-            f"<td>{TONE_EMOJI[f['to_tone']]} <b>{TONE_WORDS[f['to_tone']]}</b></td>"
-            f"<td>&#8377;{f['last_close']:,.2f} ({f['change_pct']:+.2f}%)</td>"
-            f"</tr>"
-            f"<tr><td colspan='5' style='color:#555;font-style:italic;padding-bottom:10px;'>{f['sentence']}</td></tr>"
-        )
+    flips_html = "".join(_flip_card_html(f) for f in flips) if flips else ""
 
-    today_rows = ""
+    # All-stocks card grid for context (briefs visible too)
+    today_html = ""
     for name, cur in today.items():
-        today_rows += (
-            f"<tr>"
-            f"<td>{TONE_EMOJI[cur['tone']]}</td>"
-            f"<td><b>{name}</b></td>"
-            f"<td>&#8377;{cur['last_close']:,.2f} ({cur['change_pct']:+.2f}%)</td>"
-            f"<td>{cur['sentence']}</td>"
-            f"</tr>"
+        today_html += (
+            f"<div style='border-left:4px solid #ddd;padding:8px 12px;"
+            f"margin-bottom:8px;'>"
+            f"<div><b>{TONE_EMOJI[cur['tone']]} {name}</b> "
+            f"&nbsp;&middot;&nbsp; &#8377;{cur['last_close']:,.2f} "
+            f"({cur['change_pct']:+.2f}%)</div>"
+            f"<div style='color:#444;font-size:13px;margin-top:3px;'>"
+            f"{cur.get('brief', cur['sentence'])}</div>"
+            f"</div>"
         )
 
     html = f"""
-    <html><body style="font-family:Arial,Helvetica,sans-serif;color:#111;">
-      <h2 style="margin-bottom:4px;">Stock Dashboard - {today_str}</h2>
-      <p>{intro}</p>
-      {"<table cellpadding='6' cellspacing='0' border='0' style='border-collapse:collapse;margin-bottom:18px;'>" + flip_rows + "</table>" if flips else ""}
-      <h3 style="margin-top:24px;">All stocks today</h3>
-      <table cellpadding='6' cellspacing='0' border='0' style='border-collapse:collapse;'>
-        {today_rows}
-      </table>
+    <html><body style="font-family:Arial,Helvetica,sans-serif;color:#111;
+      max-width:760px;">
+      <h2 style="margin-bottom:4px;">Stock Dashboard &mdash; {today_str}</h2>
+      <p style="margin-top:4px;color:#333;">{intro}</p>
+      {flips_html}
+      <h3 style="margin-top:24px;">Today's read on all stocks</h3>
+      {today_html}
       <p style="margin-top:20px;">
-        Open the dashboard: <a href="{DASHBOARD_URL}">{DASHBOARD_URL}</a>
+        Open the full dashboard: <a href="{DASHBOARD_URL}">{DASHBOARD_URL}</a>
       </p>
       <p style="color:#666;font-size:12px;margin-top:30px;">
-        This is a helper, not a fortune teller. It does not know news, results,
-        or the future. The final decision is always yours.
+        Rule-based analyst-style notes. A helper, not a fortune teller.
+        The final decision is always yours.
       </p>
     </body></html>
     """
+
+    # Plain text fallback
     text = f"Stock Dashboard - {today_str}\n\n{intro}\n\n"
     for f in flips:
         text += (
             f"{f['stock']}: {TONE_WORDS[f['from_tone']]} -> "
             f"{TONE_WORDS[f['to_tone']]}  (Rs {f['last_close']:,.2f}, "
-            f"{f['change_pct']:+.2f}%)\n   {f['sentence']}\n\n"
+            f"{f['change_pct']:+.2f}%)\n   {f['brief']}\n"
+        )
+        if f.get("play"):
+            p = f["play"]
+            text += (
+                f"   Play: entry ~Rs {p['entry']:.2f}, stop "
+                f"Rs {p['stop']:.2f}, target Rs {p['target']:.2f}, "
+                f"{p['shares']} shares (Rs {p['trade_value']:,.0f}).\n"
+            )
+        text += "\n"
+    text += "\nToday's read on all stocks:\n"
+    for name, cur in today.items():
+        text += (
+            f"  {name}: Rs {cur['last_close']:,.2f} "
+            f"({cur['change_pct']:+.2f}%)\n     "
+            f"{cur.get('brief', cur['sentence'])}\n"
         )
     text += f"\nDashboard: {DASHBOARD_URL}\n"
     return subject, text + "\n---\n(HTML version below)\n" + html

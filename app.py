@@ -22,6 +22,14 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from core import STOCKS, fetch_history, add_indicators, read_signals
+from analyst import (
+    SECTOR_INDEX, BROAD_INDEX,
+    fetch_fundamentals, interpret_fundamentals,
+    fetch_news, news_summary,
+    fetch_earnings_date, days_to,
+    fetch_index_change, relative_strength,
+    compute_play, assemble_brief,
+)
 
 PERIODS = {
     "1 Month": "1mo",
@@ -41,12 +49,32 @@ BACKTEST_PERIODS = {
 
 
 # ---------------------------------------------------------------------------
-# Data fetching with Streamlit caching (24h) wrapped around the shared fetcher
-# in core.py. Same fetcher (with retries) is reused by the alerts script.
+# Data fetching with Streamlit caching wrapped around the shared fetchers.
+# Heavy stuff cached for 24h (price history) or 1h (fundamentals, news, indices).
 # ---------------------------------------------------------------------------
 @st.cache_data(ttl=86400, show_spinner=False)
 def get_full_history(ticker: str) -> pd.DataFrame:
     return fetch_history(ticker, period="6y")
+
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def cached_fundamentals(ticker: str) -> dict:
+    return fetch_fundamentals(ticker)
+
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def cached_news(ticker: str) -> list:
+    return fetch_news(ticker, max_items=5)
+
+
+@st.cache_data(ttl=21600, show_spinner=False)
+def cached_earnings_date(ticker: str):
+    return fetch_earnings_date(ticker)
+
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def cached_index_change(symbol: str):
+    return fetch_index_change(symbol)
 
 
 def format_inr(value: float) -> str:
@@ -141,8 +169,9 @@ check_password()
 
 st.title("\U0001F4C8 Stock Dashboard")
 st.caption(
-    "Version 2 - Charts + plain-English signals + backtest (Indian NSE, free "
-    "daily data). A study tool - it does not predict the future or place trades."
+    "Version 3 - Charts + plain-English signals + company health + news + "
+    "sector context + the play (stop/target/size) + backtest. A decision-"
+    "support tool - it does not predict the future or place trades."
 )
 
 # ---- Sidebar controls ----
@@ -152,6 +181,20 @@ with st.sidebar:
         "Mode",
         ["Morning Briefing (all stocks)", "Detail (one stock)"],
         index=0,
+    )
+    st.divider()
+    st.header("Your risk settings")
+    capital = st.number_input(
+        "Trading capital (₹)", min_value=10000, max_value=100_000_000,
+        value=100_000, step=10000, format="%d",
+    )
+    risk_pct = st.slider(
+        "Max risk per trade (% of capital)", min_value=0.5, max_value=5.0,
+        value=2.0, step=0.5,
+    ) / 100.0
+    st.caption(
+        "Used to size each suggested trade so you never risk more than this % "
+        "of your capital if the stop is hit."
     )
     st.divider()
     if mode == "Detail (one stock)":
@@ -176,44 +219,69 @@ with st.sidebar:
 
 
 # ===========================================================================
-# MORNING BRIEFING - all stocks on one screen
+# Per-stock view assembler (used by both Morning Briefing and Detail mode)
+# ===========================================================================
+TONE_EMOJI = {"good": "\U0001F7E2", "warn": "\U0001F7E0",
+              "bad": "\U0001F534", "neutral": "⚪"}
+
+
+def build_view(name: str, capital: float, risk_pct: float) -> dict | None:
+    tkr = STOCKS[name]
+    df = get_full_history(tkr)
+    if df.empty:
+        return None
+    df = add_indicators(df)
+    sig = read_signals(df)
+    last = float(df["Close"].iloc[-1])
+    prev = float(df["Close"].iloc[-2]) if len(df) > 1 else last
+    change_pct = (last - prev) / prev * 100 if prev else 0.0
+
+    fund = cached_fundamentals(tkr)
+    interp = interpret_fundamentals(fund, last)
+    news = cached_news(tkr)
+    nsum = news_summary(news)
+    edate = cached_earnings_date(tkr)
+    edays = days_to(edate)
+    sec_sym, sec_name = SECTOR_INDEX.get(name, (None, None))
+    sec_ctx = cached_index_change(sec_sym) if sec_sym else None
+    broad_ctx = cached_index_change(BROAD_INDEX[0])
+    play = compute_play(df, capital=capital, risk_pct=risk_pct)
+    brief = assemble_brief(
+        name, last, sig, interp, nsum, sec_ctx, broad_ctx, edays, play
+    )
+    return {
+        "name": name, "ticker": tkr, "df": df, "sig": sig,
+        "last": last, "change_pct": change_pct,
+        "fund": fund, "interp": interp,
+        "news": news, "news_sum": nsum,
+        "earnings_date": edate, "earnings_in_days": edays,
+        "sector_name": sec_name, "sector_ctx": sec_ctx, "broad_ctx": broad_ctx,
+        "play": play, "brief": brief,
+    }
+
+
+# ===========================================================================
+# MORNING BRIEFING - analyst-style paragraph cards
 # ===========================================================================
 def render_morning_briefing() -> None:
     st.subheader("\U0001F305 Morning Briefing")
     st.write(
-        "All your stocks at a glance. \U0001F7E2 = looks good, "
-        "\U0001F7E0 = be careful, \U0001F534 = stay out. "
-        "Click any stock in the **Detail** mode (left sidebar) for full charts."
+        "An analyst-style note on each of your stocks today. "
+        "\U0001F7E2 = looks good · \U0001F7E0 = be careful · "
+        "\U0001F534 = stay out. Open **Detail** in the sidebar for the full chart."
     )
 
-    tone_emoji = {"good": "\U0001F7E2", "warn": "\U0001F7E0", "bad": "\U0001F534",
-                  "neutral": "⚪"}
-
-    rows = []
     problems = []
-    progress = st.progress(0.0, text="Loading your stocks...")
-    items = list(STOCKS.items())
-    for i, (name, tkr) in enumerate(items):
-        df = get_full_history(tkr)
-        progress.progress((i + 1) / len(items), text=f"Loaded {name}")
-        if df.empty:
+    views: list[dict] = []
+    progress = st.progress(0.0, text="Reading your stocks...")
+    items = list(STOCKS.keys())
+    for i, name in enumerate(items):
+        v = build_view(name, capital, risk_pct)
+        progress.progress((i + 1) / len(items), text=f"Read {name}")
+        if v is None:
             problems.append(name)
             continue
-        df = add_indicators(df)
-        sig = read_signals(df)
-        last_close = df["Close"].iloc[-1]
-        prev_close = df["Close"].iloc[-2] if len(df) > 1 else last_close
-        change_pct = (last_close - prev_close) / prev_close * 100 if prev_close else 0
-        rows.append({
-            "Signal": tone_emoji.get(sig["tone"], "⚪"),
-            "Stock": name,
-            "Last price": f"₹{last_close:,.2f}",
-            "Today": f"{change_pct:+.2f}%",
-            "Trend": "Up" if sig["trend_up"] else "Down",
-            "Strength (0-100)": f"{sig['rsi']:.0f}",
-            "Momentum": sig["momentum_word"].title(),
-            "Plain reading": sig["sentence"],
-        })
+        views.append(v)
     progress.empty()
 
     if problems:
@@ -222,34 +290,99 @@ def render_morning_briefing() -> None:
             ". Refresh in a minute to load them."
         )
 
-    if rows:
-        df_view = pd.DataFrame(rows)
-        st.dataframe(
-            df_view, use_container_width=True, hide_index=True, height=320,
-            column_config={
-                "Plain reading": st.column_config.TextColumn(width="large"),
-            },
-        )
-        st.divider()
-        st.markdown("**Today's actionables:**")
-        greens = [r for r in rows if r["Signal"] == "\U0001F7E2"]
-        oranges = [r for r in rows if r["Signal"] == "\U0001F7E0"]
-        reds = [r for r in rows if r["Signal"] == "\U0001F534"]
+    # ---- Top: grouped actionables (the very-fast-scan version) ----
+    if views:
+        greens = [v for v in views if v["sig"]["tone"] == "good"]
+        oranges = [v for v in views if v["sig"]["tone"] == "warn"]
+        reds = [v for v in views if v["sig"]["tone"] == "bad"]
+        st.markdown("##### Today's actionables")
         if greens:
             st.success(
                 "\U0001F7E2 **Looks good (possible entry):** "
-                + ", ".join(r["Stock"] for r in greens)
+                + ", ".join(v["name"] for v in greens)
             )
         if oranges:
             st.warning(
                 "\U0001F7E0 **Be careful (watch / possible exit):** "
-                + ", ".join(r["Stock"] for r in oranges)
+                + ", ".join(v["name"] for v in oranges)
             )
         if reds:
             st.error(
                 "\U0001F534 **Stay out for now:** "
-                + ", ".join(r["Stock"] for r in reds)
+                + ", ".join(v["name"] for v in reds)
             )
+        st.divider()
+
+    # ---- Per-stock analyst card ----
+    for v in views:
+        with st.container(border=True):
+            head_l, head_r = st.columns([3, 2])
+            with head_l:
+                st.markdown(
+                    f"### {TONE_EMOJI[v['sig']['tone']]} {v['name']}"
+                )
+                st.caption(
+                    (v["sector_name"] or "—") + " · "
+                    + (v["fund"].get("industry") or "")
+                )
+            with head_r:
+                st.metric(
+                    "Last close",
+                    f"₹{v['last']:,.2f}",
+                    f"{v['change_pct']:+.2f}%",
+                )
+
+            st.markdown(f"**{v['brief']}**")
+
+            # Quick fundamental tags
+            tag_bits = []
+            if v["fund"].get("trailing_pe") is not None:
+                tag_bits.append(f"P/E {v['fund']['trailing_pe']:.1f}")
+            if v["fund"].get("roe") is not None:
+                roe = v["fund"]["roe"]
+                roe_pct = roe * 100 if abs(roe) < 5 else roe
+                tag_bits.append(f"ROE {roe_pct:.1f}%")
+            if v["fund"].get("dividend_yield") is not None:
+                tag_bits.append(f"Yield {v['fund']['dividend_yield']:.2f}%")
+            if v["interp"].get("pos_in_52w_pct") is not None:
+                tag_bits.append(
+                    f"At {v['interp']['pos_in_52w_pct']:.0f}% of 52-wk range"
+                )
+            if v["earnings_in_days"] is not None and 0 <= v["earnings_in_days"] <= 30:
+                tag_bits.append(
+                    f"⚠️ Earnings in {v['earnings_in_days']}d"
+                )
+            if tag_bits:
+                st.caption("  ·  ".join(tag_bits))
+
+            # Optional: the play box for actionable signals
+            if v["play"] and v["sig"]["tone"] in ("good", "warn"):
+                p = v["play"]
+                pc1, pc2, pc3, pc4 = st.columns(4)
+                pc1.metric("Entry near", f"₹{p['entry']:.2f}")
+                pc2.metric("Stop loss", f"₹{p['stop']:.2f}")
+                pc3.metric("First target", f"₹{p['target']:.2f}")
+                pc4.metric(
+                    "Suggested size",
+                    f"{p['shares']} sh",
+                    f"≈ ₹{p['trade_value']:,.0f}",
+                )
+
+            # Latest news (collapsed by default)
+            if v["news"]:
+                with st.expander(f"Latest headlines ({len(v['news'])})"):
+                    for n in v["news"]:
+                        tone = {"positive": "\U0001F7E2",
+                                "negative": "\U0001F534",
+                                "neutral": "⚪"}[n["sentiment"]]
+                        date_str = (
+                            n["date"].strftime("%d %b")
+                            if n.get("date") else "recent"
+                        )
+                        link = n.get("url") or "#"
+                        st.markdown(
+                            f"- {tone} *{date_str}* — [{n['title']}]({link})"
+                        )
 
     st.caption(
         f"Briefing generated: {dt.datetime.now().strftime('%d %b %Y, %I:%M %p')}. "
@@ -304,8 +437,9 @@ c4.metric("Trading days shown", f"{len(data)}")
 
 st.subheader(f"{stock_name}  -  {period_label}")
 
-tab_chart, tab_signals, tab_backtest = st.tabs(
-    ["\U0001F4C8 Chart", "\U0001F6A6 Signals", "\U0001F501 Backtest"]
+tab_chart, tab_signals, tab_analyst, tab_backtest = st.tabs(
+    ["\U0001F4C8 Chart", "\U0001F6A6 Signals", "\U0001F9D1 Analyst",
+     "\U0001F501 Backtest"]
 )
 
 # ===========================================================================
@@ -425,7 +559,180 @@ with tab_signals:
     )
 
 # ===========================================================================
-# TAB 3 - BACKTEST (how a simple rule would have done)
+# TAB 3 - ANALYST (company health + news + sector context + the play)
+# ===========================================================================
+with tab_analyst:
+    v = build_view(stock_name, capital, risk_pct)
+    if v is None:
+        st.warning(
+            "Could not build analyst view (Yahoo busy). Refresh in a minute."
+        )
+    else:
+        st.markdown("##### Today's read")
+        if v["sig"]["tone"] == "good":
+            st.success(v["brief"])
+        elif v["sig"]["tone"] == "warn":
+            st.warning(v["brief"])
+        elif v["sig"]["tone"] == "bad":
+            st.error(v["brief"])
+        else:
+            st.info(v["brief"])
+
+        st.divider()
+
+        # ---- Company Health ----
+        st.markdown("##### Company health")
+        f = v["fund"]
+        h1, h2, h3, h4 = st.columns(4)
+        if f.get("trailing_pe") is not None:
+            h1.metric("Price/Earnings", f"{f['trailing_pe']:.1f}")
+            h1.caption("Lower = cheaper on earnings.")
+        if f.get("roe") is not None:
+            roe = f["roe"]
+            roe_pct = roe * 100 if abs(roe) < 5 else roe
+            h2.metric("Return on Equity", f"{roe_pct:.1f}%")
+            h2.caption(">15% is generally good.")
+        if f.get("debt_to_equity") is not None:
+            h3.metric("Debt / Equity", f"{f['debt_to_equity']:.0f}")
+            h3.caption("Lower = less indebted. >150 = high.")
+        if f.get("dividend_yield") is not None:
+            h4.metric("Dividend yield", f"{f['dividend_yield']:.2f}%")
+            h4.caption("Annual dividend as % of price.")
+
+        h5, h6, h7, h8 = st.columns(4)
+        if f.get("earnings_growth") is not None:
+            h5.metric("Earnings growth (YoY)", f"{f['earnings_growth']*100:+.1f}%")
+        if f.get("revenue_growth") is not None:
+            h6.metric("Revenue growth (YoY)", f"{f['revenue_growth']*100:+.1f}%")
+        if f.get("fifty_two_low") and f.get("fifty_two_high"):
+            h7.metric(
+                "52-week range",
+                f"₹{f['fifty_two_low']:,.0f} – ₹{f['fifty_two_high']:,.0f}",
+            )
+            if v["interp"].get("pos_in_52w_pct") is not None:
+                h8.metric(
+                    "Where in the range",
+                    f"{v['interp']['pos_in_52w_pct']:.0f}%",
+                )
+                h8.caption("0% = year low, 100% = year high.")
+
+        st.divider()
+
+        # ---- News & Events ----
+        st.markdown("##### News and events")
+        nc1, nc2 = st.columns([2, 1])
+        with nc1:
+            if v["news"]:
+                for n in v["news"]:
+                    tone = {"positive": "\U0001F7E2",
+                            "negative": "\U0001F534",
+                            "neutral": "⚪"}[n["sentiment"]]
+                    date_str = (
+                        n["date"].strftime("%d %b")
+                        if n.get("date") else "recent"
+                    )
+                    link = n.get("url") or "#"
+                    st.markdown(
+                        f"- {tone} *{date_str}* — [{n['title']}]({link})"
+                    )
+            else:
+                st.caption("No recent headlines found.")
+        with nc2:
+            if v["earnings_date"]:
+                st.metric("Next earnings", v["earnings_date"].strftime("%d %b %Y"))
+                if v["earnings_in_days"] is not None:
+                    if v["earnings_in_days"] <= 10:
+                        st.warning(
+                            f"Only {v['earnings_in_days']} day(s) to go - "
+                            "results can move the stock sharply."
+                        )
+                    else:
+                        st.caption(f"In {v['earnings_in_days']} days.")
+            st.caption(
+                "Headline tone is rule-based (keyword matching) - good for a "
+                "first scan, not a substitute for reading the articles."
+            )
+
+        st.divider()
+
+        # ---- Sector & Market Context ----
+        st.markdown("##### Sector and market context")
+        if v["sector_ctx"] or v["broad_ctx"]:
+            cc1, cc2, cc3 = st.columns(3)
+            if v["sector_ctx"]:
+                cc1.metric(
+                    f"{v['sector_name']} (today)",
+                    f"{v['sector_ctx']['day_pct']:+.2f}%",
+                )
+                cc2.metric(
+                    f"{v['sector_name']} (1 month)",
+                    f"{v['sector_ctx']['month_pct']:+.1f}%",
+                )
+            if v["broad_ctx"]:
+                cc3.metric(
+                    "Nifty 50 (1 month)",
+                    f"{v['broad_ctx']['month_pct']:+.1f}%",
+                )
+            # Relative strength sentence
+            if v["sector_ctx"]:
+                # Stock's 1m change
+                if len(v["df"]) >= 22:
+                    s_now = float(v["df"]["Close"].iloc[-1])
+                    s_then = float(v["df"]["Close"].iloc[-22])
+                    s_month_pct = (s_now - s_then) / s_then * 100 if s_then else 0
+                    st.write(
+                        f"**{stock_name}** is **{relative_strength(s_month_pct, v['sector_ctx']['month_pct'])}**."
+                    )
+        else:
+            st.caption("Sector/market data not available right now.")
+
+        st.divider()
+
+        # ---- The Play ----
+        st.markdown("##### The play (if you choose to enter)")
+        if v["play"] is None:
+            st.info("Not enough data to compute a play.")
+        elif v["sig"]["tone"] == "bad":
+            st.warning(
+                "Signal is **stay out** - no entry suggested. The numbers "
+                "below would only apply if you decide to enter anyway."
+            )
+        p = v["play"]
+        if p:
+            pl1, pl2, pl3, pl4 = st.columns(4)
+            pl1.metric("Entry near", f"₹{p['entry']:.2f}")
+            pl2.metric(
+                "Stop loss", f"₹{p['stop']:.2f}",
+                f"−{((p['entry']-p['stop'])/p['entry']*100):.1f}%",
+            )
+            pl3.metric(
+                "First target", f"₹{p['target']:.2f}",
+                f"+{((p['target']-p['entry'])/p['entry']*100):.1f}%",
+            )
+            pl4.metric(
+                "Suggested size",
+                f"{p['shares']} sh",
+                f"≈ ₹{p['trade_value']:,.0f}",
+            )
+            pl5, pl6, pl7 = st.columns(3)
+            pl5.metric("₹ at risk", f"₹{p['risk_rupees']:,.0f}")
+            pl6.metric("₹ potential reward", f"₹{p['reward_rupees']:,.0f}")
+            pl7.metric("Reward : Risk", "2 : 1")
+            st.caption(
+                "Stop is set ~2× recent daily range below entry. Target is "
+                "set at 2× risk so a win pays twice what a loss costs. "
+                "Size is calculated so a hit stop loses no more than your "
+                f"chosen {risk_pct*100:.1f}% of capital "
+                f"(₹{capital:,.0f} × {risk_pct*100:.1f}% = ₹{p['risk_rupees']:,.0f})."
+            )
+
+        st.caption(
+            "All numbers above are rule-based suggestions, not personal "
+            "advice. The decision is always yours."
+        )
+
+# ===========================================================================
+# TAB 4 - BACKTEST (how a simple rule would have done)
 # ===========================================================================
 with tab_backtest:
     st.markdown("#### The simple rule we are testing")
