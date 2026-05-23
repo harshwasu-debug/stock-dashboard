@@ -29,7 +29,9 @@ from analyst import (
     fetch_earnings_date, days_to,
     fetch_index_change, relative_strength,
     compute_play, assemble_brief,
+    compute_peer_comparison, fetch_macro, interpret_macro,
 )
+from brief_writer import write_brief
 
 PERIODS = {
     "1 Month": "1mo",
@@ -75,6 +77,23 @@ def cached_earnings_date(ticker: str):
 @st.cache_data(ttl=3600, show_spinner=False)
 def cached_index_change(symbol: str):
     return fetch_index_change(symbol)
+
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def cached_peer_comparison(name: str, fund_tuple: tuple) -> dict:
+    # fund_tuple is just used as a stable cache key
+    return compute_peer_comparison(name, dict(fund_tuple))
+
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def cached_macro() -> dict:
+    return fetch_macro()
+
+
+@st.cache_data(ttl=21600, show_spinner=True)
+def cached_brief(_ctx_key: str, ctx_payload: dict) -> tuple[str, str]:
+    # _ctx_key is a stable key (stock + date); ctx_payload carries the data
+    return write_brief(ctx_payload)
 
 
 def format_inr(value: float) -> str:
@@ -225,7 +244,10 @@ TONE_EMOJI = {"good": "\U0001F7E2", "warn": "\U0001F7E0",
               "bad": "\U0001F534", "neutral": "⚪"}
 
 
-def build_view(name: str, capital: float, risk_pct: float) -> dict | None:
+def build_view(
+    name: str, capital: float, risk_pct: float,
+    macro: dict | None = None,
+) -> dict | None:
     tkr = STOCKS[name]
     df = get_full_history(tkr)
     if df.empty:
@@ -246,9 +268,22 @@ def build_view(name: str, capital: float, risk_pct: float) -> dict | None:
     sec_ctx = cached_index_change(sec_sym) if sec_sym else None
     broad_ctx = cached_index_change(BROAD_INDEX[0])
     play = compute_play(df, capital=capital, risk_pct=risk_pct)
-    brief = assemble_brief(
-        name, last, sig, interp, nsum, sec_ctx, broad_ctx, edays, play
-    )
+    peer_cmp = cached_peer_comparison(name, tuple(sorted(fund.items())))
+    macro_flags = interpret_macro(macro) if macro else []
+
+    # Build a JSON-safe context for the brief writer (cached separately)
+    ctx_for_brief = {
+        "name": name, "last_close": last, "change_pct": change_pct,
+        "sig": sig, "fund": fund, "interp": interp,
+        "news": [{"title": n["title"]} for n in news[:3]],
+        "news_sum": nsum,
+        "sector_name": sec_name, "sector_ctx": sec_ctx, "broad_ctx": broad_ctx,
+        "earnings_in_days": edays,
+        "play": play, "peer_cmp": peer_cmp, "macro_flags": macro_flags,
+    }
+    cache_key = f"{name}-{dt.date.today().isoformat()}"
+    brief, brief_source = cached_brief(cache_key, ctx_for_brief)
+
     return {
         "name": name, "ticker": tkr, "df": df, "sig": sig,
         "last": last, "change_pct": change_pct,
@@ -256,13 +291,30 @@ def build_view(name: str, capital: float, risk_pct: float) -> dict | None:
         "news": news, "news_sum": nsum,
         "earnings_date": edate, "earnings_in_days": edays,
         "sector_name": sec_name, "sector_ctx": sec_ctx, "broad_ctx": broad_ctx,
-        "play": play, "brief": brief,
+        "play": play, "peer_cmp": peer_cmp, "macro_flags": macro_flags,
+        "brief": brief, "brief_source": brief_source,
     }
 
 
 # ===========================================================================
 # MORNING BRIEFING - analyst-style paragraph cards
 # ===========================================================================
+def render_macro_banner(macro: dict) -> None:
+    if not macro:
+        return
+    cols = st.columns(len(macro))
+    for col, (key, m) in zip(cols, macro.items()):
+        col.metric(
+            m["label"], f"{m['last']:.2f}",
+            f"{m['day_pct']:+.2f}%",
+        )
+    flags = interpret_macro(macro)
+    risky = [f for f in flags
+             if "VIX high" in f or "Rupee" in f or "Crude" in f]
+    if risky:
+        st.caption("**Macro flags:** " + "  ·  ".join(risky))
+
+
 def render_morning_briefing() -> None:
     st.subheader("\U0001F305 Morning Briefing")
     st.write(
@@ -271,12 +323,18 @@ def render_morning_briefing() -> None:
         "\U0001F534 = stay out. Open **Detail** in the sidebar for the full chart."
     )
 
+    # Macro banner across the top
+    macro = cached_macro()
+    with st.container(border=True):
+        st.markdown("**Today's macro screen**")
+        render_macro_banner(macro)
+
     problems = []
     views: list[dict] = []
     progress = st.progress(0.0, text="Reading your stocks...")
     items = list(STOCKS.keys())
     for i, name in enumerate(items):
-        v = build_view(name, capital, risk_pct)
+        v = build_view(name, capital, risk_pct, macro=macro)
         progress.progress((i + 1) / len(items), text=f"Read {name}")
         if v is None:
             problems.append(name)
@@ -289,6 +347,10 @@ def render_morning_briefing() -> None:
             "Yahoo Finance was busy for: " + ", ".join(problems) +
             ". Refresh in a minute to load them."
         )
+
+    # Rank: greens first, then warns, then reds (good news on top)
+    tone_order = {"good": 0, "warn": 1, "neutral": 2, "bad": 3}
+    views.sort(key=lambda v: tone_order.get(v["sig"]["tone"], 4))
 
     # ---- Top: grouped actionables (the very-fast-scan version) ----
     if views:
@@ -384,6 +446,17 @@ def render_morning_briefing() -> None:
                             f"- {tone} *{date_str}* — [{n['title']}]({link})"
                         )
 
+    # Source badge (AI or rule)
+    sources = {v.get("brief_source", "rule") for v in views}
+    if "gemini" in sources:
+        st.caption("✨ Briefs written by Google Gemini (free).")
+    elif "claude" in sources:
+        st.caption("✨ Briefs written by Claude.")
+    else:
+        st.caption(
+            "Briefs are rule-based. To switch on free AI-written briefs, set "
+            "the `GEMINI_API_KEY` secret in your Streamlit Cloud app settings."
+        )
     st.caption(
         f"Briefing generated: {dt.datetime.now().strftime('%d %b %Y, %I:%M %p')}. "
         "A helper, not a fortune teller. The decision is always yours."
@@ -562,7 +635,7 @@ with tab_signals:
 # TAB 3 - ANALYST (company health + news + sector context + the play)
 # ===========================================================================
 with tab_analyst:
-    v = build_view(stock_name, capital, risk_pct)
+    v = build_view(stock_name, capital, risk_pct, macro=cached_macro())
     if v is None:
         st.warning(
             "Could not build analyst view (Yahoo busy). Refresh in a minute."
@@ -577,6 +650,12 @@ with tab_analyst:
             st.error(v["brief"])
         else:
             st.info(v["brief"])
+        source_label = {
+            "gemini": "✨ Written by Gemini (free AI)",
+            "claude": "✨ Written by Claude",
+            "rule":   "Rule-based note (no AI key configured)",
+        }.get(v.get("brief_source", "rule"), "")
+        st.caption(source_label)
 
         st.divider()
 
@@ -655,6 +734,38 @@ with tab_analyst:
 
         st.divider()
 
+        # ---- Peer comparison ----
+        pc = v.get("peer_cmp") or {}
+        if pc.get("peer_count"):
+            st.markdown(f"##### Vs peers ({pc['peer_count']} similar companies)")
+            f = v["fund"]
+            pp1, pp2, pp3 = st.columns(3)
+            if pc.get("pe_median") is not None and f.get("trailing_pe") is not None:
+                delta = f["trailing_pe"] - pc["pe_median"]
+                pp1.metric(
+                    "P/E vs peer median",
+                    f"{f['trailing_pe']:.1f} vs {pc['pe_median']:.1f}",
+                    f"{delta:+.1f}",
+                    delta_color="inverse",  # lower P/E is better
+                )
+            if pc.get("roe_median") is not None and f.get("roe") is not None:
+                f_roe = f["roe"] * 100 if abs(f["roe"]) < 5 else f["roe"]
+                p_roe = pc["roe_median"] * 100 if abs(pc["roe_median"]) < 5 else pc["roe_median"]
+                pp2.metric(
+                    "ROE vs peer median",
+                    f"{f_roe:.1f}% vs {p_roe:.1f}%",
+                    f"{f_roe - p_roe:+.1f} pp",
+                )
+            if pc.get("yield_median") is not None and f.get("dividend_yield") is not None:
+                pp3.metric(
+                    "Dividend yield vs peers",
+                    f"{f['dividend_yield']:.2f}% vs {pc['yield_median']:.2f}%",
+                    f"{f['dividend_yield'] - pc['yield_median']:+.2f} pp",
+                )
+            if pc.get("notes"):
+                st.caption("**Reads:** " + "  ·  ".join(pc["notes"]))
+            st.divider()
+
         # ---- Sector & Market Context ----
         st.markdown("##### Sector and market context")
         if v["sector_ctx"] or v["broad_ctx"]:
@@ -685,6 +796,13 @@ with tab_analyst:
                     )
         else:
             st.caption("Sector/market data not available right now.")
+
+        # Macro flags relevant to this stock
+        if v.get("macro_flags"):
+            risky = [f for f in v["macro_flags"]
+                     if "VIX high" in f or "Rupee" in f or "Crude" in f]
+            if risky:
+                st.caption("**Macro context:** " + "  ·  ".join(risky))
 
         st.divider()
 

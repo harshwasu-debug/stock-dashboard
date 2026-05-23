@@ -30,7 +30,9 @@ from analyst import (
     fetch_news, news_summary,
     fetch_earnings_date, days_to,
     fetch_index_change, compute_play, assemble_brief,
+    compute_peer_comparison, fetch_macro, interpret_macro,
 )
+from brief_writer import write_brief
 
 ALERT_CAPITAL = float(os.environ.get("ALERT_CAPITAL", "100000"))
 ALERT_RISK_PCT = float(os.environ.get("ALERT_RISK_PCT", "2.0")) / 100.0
@@ -65,11 +67,12 @@ def compute_today() -> dict:
     """For each stock, fetch + compute current signal + full analyst view.
     Skip on fetch failure (won't email about it, won't update state)."""
     today = {}
-    # Broad market index fetched once
     broad_ctx = fetch_index_change(BROAD_INDEX[0])
+    macro = fetch_macro()
+    macro_flags = interpret_macro(macro) if macro else []
 
     for name, ticker in STOCKS.items():
-        df = fetch_history(ticker, period="2y")  # enough for SMA50 + RSI + ATR
+        df = fetch_history(ticker, period="2y")
         if df.empty:
             print(f"[skip] {name}: fetch failed", file=sys.stderr)
             continue
@@ -79,7 +82,6 @@ def compute_today() -> dict:
         prev_close = float(df["Close"].iloc[-2]) if len(df) > 1 else last_close
         change_pct = (last_close - prev_close) / prev_close * 100 if prev_close else 0
 
-        # Analyst layer
         fund = fetch_fundamentals(ticker)
         interp = interpret_fundamentals(fund, last_close)
         news = fetch_news(ticker, max_items=5)
@@ -89,14 +91,25 @@ def compute_today() -> dict:
         sec_sym, sec_name = SECTOR_INDEX.get(name, (None, None))
         sec_ctx = fetch_index_change(sec_sym) if sec_sym else None
         play = compute_play(df, capital=ALERT_CAPITAL, risk_pct=ALERT_RISK_PCT)
-        brief = assemble_brief(
-            name, last_close, sig, interp, nsum, sec_ctx, broad_ctx, edays, play
-        )
+        peer_cmp = compute_peer_comparison(name, fund)
+
+        ctx = {
+            "name": name, "last_close": last_close, "change_pct": change_pct,
+            "sig": sig, "fund": fund, "interp": interp,
+            "news": [{"title": n["title"]} for n in news[:3]],
+            "news_sum": nsum,
+            "sector_name": sec_name, "sector_ctx": sec_ctx, "broad_ctx": broad_ctx,
+            "earnings_in_days": edays, "play": play,
+            "peer_cmp": peer_cmp, "macro_flags": macro_flags,
+        }
+        brief, source = write_brief(ctx)
+        print(f"[brief] {name}: source={source}")
 
         today[name] = {
             "tone": sig["tone"],
             "sentence": sig["sentence"],
             "brief": brief,
+            "brief_source": source,
             "rsi": round(sig["rsi"], 1),
             "trend_up": sig["trend_up"],
             "last_close": round(last_close, 2),
