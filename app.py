@@ -56,17 +56,44 @@ BACKTEST_PERIODS = {
 
 
 # ---------------------------------------------------------------------------
-# Data fetching. Cached for 1 hour so it does not re-download every click.
+# Data fetching.
+# Yahoo Finance throttles shared cloud IPs, so we do three things:
+#   1. Use yf.download (the bulk endpoint is friendlier than .history())
+#   2. Retry a few times with growing waits if it gets rate-limited
+#   3. Cache the result for 24 hours so we ask Yahoo as little as possible
 # We always pull ~6 years so the indicators and backtest have enough history,
 # then trim to what the user asked to see.
 # ---------------------------------------------------------------------------
-@st.cache_data(ttl=3600, show_spinner=False)
+import time
+
+
+@st.cache_data(ttl=86400, show_spinner=False)
 def get_full_history(ticker: str) -> pd.DataFrame:
-    df = yf.Ticker(ticker).history(period="6y", interval="1d")
-    if not df.empty:
-        df = df.reset_index()
-        df["Date"] = pd.to_datetime(df["Date"]).dt.tz_localize(None)
-    return df
+    last_err = None
+    for attempt, wait in enumerate([0, 3, 8, 15], start=1):
+        if wait:
+            time.sleep(wait)
+        try:
+            df = yf.download(
+                ticker,
+                period="6y",
+                interval="1d",
+                progress=False,
+                auto_adjust=True,
+                threads=False,
+            )
+            if df is not None and not df.empty:
+                # yf.download returns a MultiIndex on columns sometimes -> flatten
+                if isinstance(df.columns, pd.MultiIndex):
+                    df.columns = [c[0] for c in df.columns]
+                df = df.reset_index()
+                df["Date"] = pd.to_datetime(df["Date"]).dt.tz_localize(None)
+                return df
+            last_err = "empty response"
+        except Exception as e:  # rate-limit, network, etc.
+            last_err = str(e)
+    # All attempts failed
+    return pd.DataFrame()
 
 
 def format_inr(value: float) -> str:
@@ -277,9 +304,12 @@ with st.spinner(f"Getting data for {stock_name}..."):
     full = get_full_history(ticker)
 
 if full.empty:
-    st.error(
-        f"Could not get data for {stock_name} ({ticker}). "
-        "Yahoo Finance may be temporarily unavailable - try again in a moment."
+    st.warning(
+        f"Yahoo Finance is busy and asked us to slow down for **{stock_name}**.\n\n"
+        "This happens sometimes on free hosting because many apps share the "
+        "same server. **Wait a minute and refresh the page** "
+        "(or pick a different stock first, then come back) - the data is "
+        "cached for 24 hours once it loads, so it stays fast after."
     )
     st.stop()
 
