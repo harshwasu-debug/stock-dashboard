@@ -487,6 +487,65 @@ with tab_backtest:
             f"{bt['n_trades']}  /  {bt['win_rate']:.0f}%",
         )
 
+        # ---- Price + the two trend lines over the backtest window ----
+        st.markdown("**Price with the two trend lines** (green shading = "
+                    "periods the rule was holding the stock):")
+        bt_df = bt["data"]
+        ma_fig = go.Figure()
+        ma_fig.add_trace(
+            go.Scatter(
+                x=bt_df["Date"], y=bt_df["Close"], mode="lines",
+                name="Price", line=dict(color="#1f2937", width=1.5),
+            )
+        )
+        ma_fig.add_trace(
+            go.Scatter(
+                x=bt_df["Date"], y=bt_df["SMA20"], mode="lines",
+                name="20-day average (short-term)",
+                line=dict(color="#f59e0b", width=1.5),
+            )
+        )
+        ma_fig.add_trace(
+            go.Scatter(
+                x=bt_df["Date"], y=bt_df["SMA50"], mode="lines",
+                name="50-day average (long-term)",
+                line=dict(color="#7c3aed", width=1.5),
+            )
+        )
+        # Shade contiguous "in market" stretches in light green
+        in_mkt = bt_df["in_market"].values
+        dates = bt_df["Date"].values
+        run_start = None
+        for i in range(len(in_mkt)):
+            if in_mkt[i] == 1 and run_start is None:
+                run_start = dates[i]
+            elif in_mkt[i] == 0 and run_start is not None:
+                ma_fig.add_vrect(
+                    x0=run_start, x1=dates[i - 1],
+                    fillcolor="#16a34a", opacity=0.10, line_width=0,
+                )
+                run_start = None
+        if run_start is not None:
+            ma_fig.add_vrect(
+                x0=run_start, x1=dates[-1],
+                fillcolor="#16a34a", opacity=0.10, line_width=0,
+            )
+        ma_fig.update_layout(
+            height=380, margin=dict(l=10, r=10, t=10, b=10),
+            template="plotly_white", hovermode="x unified",
+            yaxis_title="Price (INR)",
+            legend=dict(orientation="h", y=1.02, x=0),
+        )
+        st.plotly_chart(ma_fig, use_container_width=True)
+        st.caption(
+            "When the orange line is above the purple line, the rule holds "
+            "the stock (green shaded). When orange dips below purple, the "
+            "rule moves to cash (no shading)."
+        )
+
+        st.markdown("**How ₹100 would have grown** following the rule vs "
+                    "just buying and holding:")
+
         eq = go.Figure()
         eq.add_trace(
             go.Scatter(
