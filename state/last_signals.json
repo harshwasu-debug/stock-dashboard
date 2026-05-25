@@ -1,0 +1,93 @@
+{
+  "TCS": {
+    "tone": "bad",
+    "sentence": "Downtrend and weak - better to WAIT / stay out until the trend turns up again.",
+    "brief": "Downtrend and weak - better to WAIT / stay out until the trend turns up again. On the company: fairly priced on earnings, highly profitable, low debt, more profitable than peers. Its sector is down 0.8% this month; the broader Nifty 50 is down 1.5%. News and events: mostly positive headlines (3 of 5). Macro: Rupee weakening (+1.0% / month) - helps IT, hurts oil importers; Crude down -7.4% / month - tailwind for refiners & users.",
+    "brief_source": "rule",
+    "rsi": 50.0,
+    "trend_up": false,
+    "last_close": NaN,
+    "change_pct": NaN,
+    "earnings_in_days": 44,
+    "play": null,
+    "sector_name": "Nifty IT"
+  },
+  "Vedanta": {
+    "tone": "bad",
+    "sentence": "Downtrend and weak - better to WAIT / stay out until the trend turns up again.",
+    "brief": "Downtrend and weak - better to WAIT / stay out until the trend turns up again. On the company: fairly priced on earnings, highly profitable, low debt, earnings growing fast, cheaper than peers, less profitable than peers, higher dividend yield than peers. Its sector is up 2.2% this month; the broader Nifty 50 is down 1.5%. News and events: mixed / neutral headlines. Macro: Rupee weakening (+1.0% / month) - helps IT, hurts oil importers; Crude down -7.4% / month - tailwind for refiners & users.",
+    "brief_source": "rule",
+    "rsi": 50.0,
+    "trend_up": false,
+    "last_close": NaN,
+    "change_pct": NaN,
+    "earnings_in_days": 65,
+    "play": null,
+    "sector_name": "Nifty Metal"
+  },
+  "Samvardhana Motherson": {
+    "tone": "bad",
+    "sentence": "Downtrend and weak - better to WAIT / stay out until the trend turns up again.",
+    "brief": "Downtrend and weak - better to WAIT / stay out until the trend turns up again. On the company: fairly priced on earnings, low debt, earnings growing fast. Its sector is down 0.1% this month; the broader Nifty 50 is down 1.5%. News and events: mixed / neutral headlines. Macro: Rupee weakening (+1.0% / month) - helps IT, hurts oil importers; Crude down -7.4% / month - tailwind for refiners & users.",
+    "brief_source": "rule",
+    "rsi": 50.0,
+    "trend_up": false,
+    "last_close": NaN,
+    "change_pct": NaN,
+    "earnings_in_days": 79,
+    "play": null,
+    "sector_name": "Nifty Auto"
+  },
+  "Sterlite Technologies": {
+    "tone": "bad",
+    "sentence": "Downtrend and weak - better to WAIT / stay out until the trend turns up again.",
+    "brief": "Downtrend and weak - better to WAIT / stay out until the trend turns up again. On the company: looks expensive on earnings, weak profits, more expensive than peers, less profitable than peers. Its sector is down 0.8% this month; the broader Nifty 50 is down 1.5%. Macro: Rupee weakening (+1.0% / month) - helps IT, hurts oil importers; Crude down -7.4% / month - tailwind for refiners & users.",
+    "brief_source": "rule",
+    "rsi": 50.0,
+    "trend_up": false,
+    "last_close": NaN,
+    "change_pct": NaN,
+    "earnings_in_days": null,
+    "play": null,
+    "sector_name": "Nifty IT"
+  },
+  "NMDC": {
+    "tone": "bad",
+    "sentence": "Downtrend and weak - better to WAIT / stay out until the trend turns up again.",
+    "brief": "Downtrend and weak - better to WAIT / stay out until the trend turns up again. On the company: looks cheap on earnings, low debt, earnings are shrinking, cheaper than peers, higher dividend yield than peers. Its sector is up 2.2% this month; the broader Nifty 50 is down 1.5%. Macro: Rupee weakening (+1.0% / month) - helps IT, hurts oil importers; Crude down -7.4% / month - tailwind for refiners & users.",
+    "brief_source": "rule",
+    "rsi": 50.0,
+    "trend_up": false,
+    "last_close": NaN,
+    "change_pct": NaN,
+    "earnings_in_days": null,
+    "play": null,
+    "sector_name": "Nifty Metal"
+  },
+  "Power Finance Corp (PFC)": {
+    "tone": "bad",
+    "sentence": "Downtrend and weak - better to WAIT / stay out until the trend turns up again.",
+    "brief": "Downtrend and weak - better to WAIT / stay out until the trend turns up again. On the company: looks cheap on earnings, highly profitable, high debt - watch out, more profitable than peers. Its sector is down 2.4% this month; the broader Nifty 50 is down 1.5%. News and events: mixed / neutral headlines. Macro: Rupee weakening (+1.0% / month) - helps IT, hurts oil importers; Crude down -7.4% / month - tailwind for refiners & users.",
+    "brief_source": "rule",
+    "rsi": 50.0,
+    "trend_up": false,
+    "last_close": NaN,
+    "change_pct": NaN,
+    "earnings_in_days": 71,
+    "play": null,
+    "sector_name": "Nifty Financial Services"
+  },
+  "REC Ltd": {
+    "tone": "bad",
+    "sentence": "Downtrend and weak - better to WAIT / stay out until the trend turns up again.",
+    "brief": "Downtrend and weak - better to WAIT / stay out until the trend turns up again. On the company: looks cheap on earnings, highly profitable, high debt - watch out, earnings are shrinking, more profitable than peers, higher dividend yield than peers. Its sector is down 2.4% this month; the broader Nifty 50 is down 1.5%. Macro: Rupee weakening (+1.0% / month) - helps IT, hurts oil importers; Crude down -7.4% / month - tailwind for refiners & users.",
+    "brief_source": "rule",
+    "rsi": 50.0,
+    "trend_up": false,
+    "last_close": NaN,
+    "change_pct": NaN,
+    "earnings_in_days": 58,
+    "play": null,
+    "sector_name": "Nifty Financial Services"
+  }
+}

@@ -25,7 +25,7 @@ from pathlib import Path
 
 from core import STOCKS, add_indicators, fetch_history, read_signals
 from analyst import (
-    SECTOR_INDEX, BROAD_INDEX,
+    SECTOR_INDEX, BROAD_INDEX, MACRO_SYMBOLS,
     fetch_fundamentals, interpret_fundamentals,
     fetch_news, news_summary,
     fetch_earnings_date, days_to,
@@ -33,6 +33,7 @@ from analyst import (
     compute_peer_comparison, fetch_macro, interpret_macro,
 )
 from brief_writer import write_brief
+import data_store as ds
 
 ALERT_CAPITAL = float(os.environ.get("ALERT_CAPITAL", "100000"))
 ALERT_RISK_PCT = float(os.environ.get("ALERT_RISK_PCT", "2.0")) / 100.0
@@ -63,19 +64,40 @@ def save_current_state(state: dict) -> None:
     )
 
 
+FAILED_STOCKS: list[str] = []  # populated by compute_today, read by main
+
+
 def compute_today() -> dict:
-    """For each stock, fetch + compute current signal + full analyst view.
+    """For each stock, fetch + compute current signal + full analyst view +
+    SAVE everything to the state/ folder so the dashboard can serve from disk.
     Skip on fetch failure (won't email about it, won't update state)."""
     today = {}
+    failed_stocks: list[str] = FAILED_STOCKS
+    failed_stocks.clear()
     broad_ctx = fetch_index_change(BROAD_INDEX[0])
     macro = fetch_macro()
     macro_flags = interpret_macro(macro) if macro else []
 
+    # Persist macro + broad index snapshots
+    for _key, (sym, _label) in MACRO_SYMBOLS.items():
+        ctx = macro.get(_key)
+        if ctx:
+            # store both under the broad key and under the symbol
+            ds.save_index_change(sym, {"label": ctx["label"],
+                                       "last": ctx["last"],
+                                       "day_pct": ctx["day_pct"],
+                                       "month_pct": ctx["month_pct"]})
+
     for name, ticker in STOCKS.items():
-        df = fetch_history(ticker, period="2y")
+        df = fetch_history(ticker, period="6y")  # full history for backtest
         if df.empty:
             print(f"[skip] {name}: fetch failed", file=sys.stderr)
+            failed_stocks.append(name)
             continue
+
+        # Persist raw price history right away (independent of the rest)
+        ds.save_price_history(ticker, df)
+
         df = add_indicators(df)
         sig = read_signals(df)
         last_close = float(df["Close"].iloc[-1])
@@ -83,13 +105,18 @@ def compute_today() -> dict:
         change_pct = (last_close - prev_close) / prev_close * 100 if prev_close else 0
 
         fund = fetch_fundamentals(ticker)
+        ds.save_fundamentals(ticker, fund)
         interp = interpret_fundamentals(fund, last_close)
         news = fetch_news(ticker, max_items=5)
+        ds.save_news(ticker, news)
         nsum = news_summary(news)
         edate = fetch_earnings_date(ticker)
+        ds.save_earnings_date(ticker, edate)
         edays = days_to(edate)
         sec_sym, sec_name = SECTOR_INDEX.get(name, (None, None))
         sec_ctx = fetch_index_change(sec_sym) if sec_sym else None
+        if sec_sym and sec_ctx:
+            ds.save_index_change(sec_sym, sec_ctx)
         play = compute_play(df, capital=ALERT_CAPITAL, risk_pct=ALERT_RISK_PCT)
         peer_cmp = compute_peer_comparison(name, fund)
 
@@ -283,12 +310,28 @@ def send_email(subject: str, body: str) -> None:
     print(f"[ok] email sent to {len(recipients)} recipient(s)")
 
 
+def _have_email_creds() -> bool:
+    return all(os.environ.get(k) for k in
+               ("GMAIL_USER", "GMAIL_APP_PASSWORD", "ALERT_RECIPIENTS"))
+
+
 def main() -> None:
     prev = load_previous_state()
     today = compute_today()
 
+    # ALWAYS save the snapshot meta (so the dashboard knows when we last ran)
+    ds.update_meta_now(ok_count=len(today), fail=FAILED_STOCKS)
+    print(f"[ok] snapshot saved: {len(today)} stocks, "
+          f"{len(FAILED_STOCKS)} failed")
+
     if not today:
-        print("[warn] no stocks loaded today; not updating state or sending email")
+        print("[warn] no stocks loaded today; not sending email")
+        return
+
+    if not _have_email_creds():
+        print("[ok] no email credentials set - skipping email "
+              "(snapshots still saved)")
+        save_current_state(today)
         return
 
     first_run = len(prev) == 0

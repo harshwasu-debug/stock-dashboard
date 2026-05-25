@@ -32,6 +32,7 @@ from analyst import (
     compute_peer_comparison, fetch_macro, interpret_macro,
 )
 from brief_writer import write_brief
+import data_store as ds
 
 PERIODS = {
     "1 Month": "1mo",
@@ -51,32 +52,79 @@ BACKTEST_PERIODS = {
 
 
 # ---------------------------------------------------------------------------
-# Data fetching with Streamlit caching wrapped around the shared fetchers.
-# Heavy stuff cached for 24h (price history) or 1h (fundamentals, news, indices).
+# Data fetching - DISK FIRST, live fallback.
+# The cron job (alerts.py) refreshes the disk snapshot every weekday after
+# market close. The dashboard reads from disk to stay instant + immune to
+# Yahoo's rate-limiting. Live Yahoo is only used if a file is missing.
 # ---------------------------------------------------------------------------
-@st.cache_data(ttl=86400, show_spinner=False)
+@st.cache_data(ttl=900, show_spinner=False)
 def get_full_history(ticker: str) -> pd.DataFrame:
-    return fetch_history(ticker, period="6y")
+    df = ds.load_price_history(ticker)
+    if not df.empty:
+        return df
+    df = fetch_history(ticker, period="6y")
+    if not df.empty:
+        try:
+            ds.save_price_history(ticker, df)
+        except Exception:
+            pass
+    return df
 
 
-@st.cache_data(ttl=3600, show_spinner=False)
+@st.cache_data(ttl=900, show_spinner=False)
 def cached_fundamentals(ticker: str) -> dict:
-    return fetch_fundamentals(ticker)
+    disk = ds.load_fundamentals(ticker)
+    if disk:
+        return disk
+    fund = fetch_fundamentals(ticker)
+    if fund:
+        try:
+            ds.save_fundamentals(ticker, fund)
+        except Exception:
+            pass
+    return fund
 
 
-@st.cache_data(ttl=3600, show_spinner=False)
+@st.cache_data(ttl=900, show_spinner=False)
 def cached_news(ticker: str) -> list:
-    return fetch_news(ticker, max_items=5)
+    disk = ds.load_news(ticker)
+    if disk:
+        return disk
+    news = fetch_news(ticker, max_items=5)
+    if news:
+        try:
+            ds.save_news(ticker, news)
+        except Exception:
+            pass
+    return news
 
 
 @st.cache_data(ttl=21600, show_spinner=False)
 def cached_earnings_date(ticker: str):
-    return fetch_earnings_date(ticker)
+    disk = ds.load_earnings_date(ticker)
+    if disk:
+        return disk
+    edate = fetch_earnings_date(ticker)
+    if edate:
+        try:
+            ds.save_earnings_date(ticker, edate)
+        except Exception:
+            pass
+    return edate
 
 
-@st.cache_data(ttl=3600, show_spinner=False)
+@st.cache_data(ttl=900, show_spinner=False)
 def cached_index_change(symbol: str):
-    return fetch_index_change(symbol)
+    disk = ds.load_index_change(symbol)
+    if disk:
+        return disk
+    ctx = fetch_index_change(symbol)
+    if ctx:
+        try:
+            ds.save_index_change(symbol, ctx)
+        except Exception:
+            pass
+    return ctx
 
 
 @st.cache_data(ttl=3600, show_spinner=False)
@@ -85,9 +133,17 @@ def cached_peer_comparison(name: str, fund_tuple: tuple) -> dict:
     return compute_peer_comparison(name, dict(fund_tuple))
 
 
-@st.cache_data(ttl=3600, show_spinner=False)
+@st.cache_data(ttl=900, show_spinner=False)
 def cached_macro() -> dict:
-    return fetch_macro()
+    # Reuse disk-first cached_index_change for each macro symbol so the
+    # macro screen also stays Yahoo-rate-limit-proof.
+    from analyst import MACRO_SYMBOLS
+    out = {}
+    for key, (sym, label) in MACRO_SYMBOLS.items():
+        ctx = cached_index_change(sym)
+        if ctx:
+            out[key] = {"label": label, **ctx}
+    return out
 
 
 @st.cache_data(ttl=21600, show_spinner=True)
@@ -188,10 +244,22 @@ check_password()
 
 st.title("\U0001F4C8 Stock Dashboard")
 st.caption(
-    "Version 3 - Charts + plain-English signals + company health + news + "
-    "sector context + the play (stop/target/size) + backtest. A decision-"
-    "support tool - it does not predict the future or place trades."
+    "Version 4 - Charts + plain-English signals + company health + peers + "
+    "news + sector + macro + the play + backtest. A decision-support tool - "
+    "it does not predict the future or place trades."
 )
+
+# Snapshot freshness banner
+_age = ds.data_age_hours()
+if _age is None:
+    st.caption("⚠️ No snapshot yet - using live Yahoo (may be slow on first load).")
+elif _age < 36:
+    st.caption(f"\U0001F4BE Data snapshot: refreshed {_age:.1f} hours ago.")
+else:
+    st.caption(
+        f"⚠️ Data snapshot is {_age/24:.1f} days old - the cron may "
+        "have failed. Manually re-run the alerts workflow on GitHub if needed."
+    )
 
 # ---- Sidebar controls ----
 with st.sidebar:

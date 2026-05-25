@@ -34,13 +34,13 @@ jobs:
           ALERT_RECIPIENTS: ${{ secrets.ALERT_RECIPIENTS }}
         run: python alerts.py
 
-      - name: Commit updated state (so tomorrow knows what changed)
+      - name: Commit fresh snapshot (so dashboard always serves recent data)
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if [ -n "$(git status --porcelain state/last_signals.json)" ]; then
-            git add state/last_signals.json
-            git commit -m "alerts: update saved state [skip ci]"
+          git add state/
+          if [ -n "$(git status --porcelain state/)" ]; then
+            git commit -m "snapshot: refresh prices/fundamentals/news [skip ci]"
             git push
           else
             echo "No state changes to commit."
