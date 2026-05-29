@@ -1,13 +1,5 @@
 {
-  "updated_at": "2026-05-28T14:39:39",
-  "stocks_ok": 0,
-  "stocks_failed": [
-    "TCS",
-    "Vedanta",
-    "Samvardhana Motherson",
-    "Sterlite Technologies",
-    "NMDC",
-    "Power Finance Corp (PFC)",
-    "REC Ltd"
-  ]
+  "updated_at": "2026-05-29T13:57:51",
+  "stocks_ok": 7,
+  "stocks_failed": []
 }

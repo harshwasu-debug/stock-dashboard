@@ -1,42 +1,42 @@
 [
   {
+    "title": "TCS and Mistral agree partnership for advanced AI model deployment",
+    "date": "2026-05-29T07:31:51+00:00",
+    "url": "https://www.verdict.co.uk/tcs-mistral-ai-model-deployment/",
+    "publisher": "Verdict",
+    "sentiment": "positive",
+    "score": 2
+  },
+  {
+    "title": "Is Amazon.com (AMZN) the Best Strong Buy Stock to Buy and Hold for the Next 5 Years?",
+    "date": "2026-05-29T00:51:44+00:00",
+    "url": "https://finance.yahoo.com/markets/stocks/articles/amazon-com-amzn-best-strong-005144570.html",
+    "publisher": "Insider Monkey",
+    "sentiment": "positive",
+    "score": 2
+  },
+  {
+    "title": "India Tests Banking, Aadhaar Systems Against Anthropic's Mythos AI Threats",
+    "date": "2026-05-27T17:44:14+00:00",
+    "url": "https://finance.yahoo.com/sectors/technology/articles/india-tests-banking-aadhaar-systems-174414422.html",
+    "publisher": "GuruFocus.com",
+    "sentiment": "positive",
+    "score": 2
+  },
+  {
+    "title": "TCS launches SovereignSecure Cloud in Europe for public sector",
+    "date": "2026-05-27T09:35:18+00:00",
+    "url": "https://www.verdict.co.uk/tcs-sovereignsecure-cloud-europe/",
+    "publisher": "Verdict",
+    "sentiment": "neutral",
+    "score": 0
+  },
+  {
     "title": "Rezolve AI TCS Alliance Puts Growth Ambitions Against Valuation Concerns",
     "date": "2026-05-17T23:09:23+00:00",
     "url": "https://finance.yahoo.com/markets/stocks/articles/rezolve-ai-tcs-alliance-puts-230923810.html",
     "publisher": "Simply Wall St.",
     "sentiment": "positive",
     "score": 6
-  },
-  {
-    "title": "Explainer-Why India’s Tata Sons is under pressure to list as trust divisions emerge",
-    "date": "2026-05-16T04:47:11+00:00",
-    "url": "https://sg.finance.yahoo.com/news/explainer-why-indias-tata-sons-073258579.html",
-    "publisher": "Reuters",
-    "sentiment": "neutral",
-    "score": 0
-  },
-  {
-    "title": "TCS partners with Rezolve Ai to scale agentic AI commerce for retailers",
-    "date": "2026-05-13T09:38:41+00:00",
-    "url": "https://www.retail-insight-network.com/news/tcs-partners-rezolve-ai-agentic-ai-commerce/",
-    "publisher": "Retail Insight Network",
-    "sentiment": "positive",
-    "score": 1
-  },
-  {
-    "title": "India's IT shares near three‑year low as OpenAI move revives AI fears",
-    "date": "2026-05-12T05:41:52+00:00",
-    "url": "https://finance.yahoo.com/markets/stocks/articles/indias-index-falls-three-low-054152835.html",
-    "publisher": "Reuters",
-    "sentiment": "positive",
-    "score": 1
-  },
-  {
-    "title": "India's IT index falls to three-year low on weak earnings outlook, demand worries",
-    "date": "2026-05-12T05:41:52+00:00",
-    "url": "https://sg.finance.yahoo.com/news/indias-index-falls-three-low-054152871.html",
-    "publisher": "Reuters",
-    "sentiment": "negative",
-    "score": -3
   }
 ]
