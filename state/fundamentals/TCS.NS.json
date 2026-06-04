@@ -1,17 +1,17 @@
 {
   "sector": "Technology",
   "industry": "Information Technology Services",
-  "trailing_pe": 16.47703,
-  "forward_pe": 13.5506735,
+  "trailing_pe": 16.469463,
+  "forward_pe": 13.546442,
   "roe": 0.48395002,
   "debt_to_equity": 10.389,
   "profit_margin": 0.18429,
   "revenue_growth": 0.096,
   "earnings_growth": 0.122,
-  "dividend_yield": 5.07,
-  "market_cap": 8110666153984.0,
+  "dividend_yield": 5.53,
+  "market_cap": 8108133842944.0,
   "fifty_two_high": 3538.0,
   "fifty_two_low": 2206.4,
   "beta": 0.289,
-  "price_to_book": 7.1453843
+  "price_to_book": 7.143153
 }
