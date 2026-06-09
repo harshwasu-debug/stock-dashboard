@@ -1,5 +1,29 @@
 [
   {
+    "title": "AI agents could match human workforce in future, TCS Chairman Chandrasekaran says",
+    "date": "2026-06-09T07:59:01+00:00",
+    "url": "https://finance.yahoo.com/sectors/technology/articles/indias-tcs-chairman-expects-ai-074336738.html",
+    "publisher": "Reuters",
+    "sentiment": "neutral",
+    "score": 0
+  },
+  {
+    "title": "India’s TCS chair says AI agents may equal headcount, dampen hiring",
+    "date": "2026-06-09T07:43:36+00:00",
+    "url": "https://finance.yahoo.com/sectors/technology/articles/indias-tcs-chairman-expects-ai-074336415.html",
+    "publisher": "Reuters",
+    "sentiment": "negative",
+    "score": -2
+  },
+  {
+    "title": "Trump’s $100,000 H-1B Visa Application Fee Rejected by Judge",
+    "date": "2026-06-08T18:48:18+00:00",
+    "url": "https://finance.yahoo.com/sectors/technology/articles/trump-100-000-h-1b-174949452.html",
+    "publisher": "Bloomberg",
+    "sentiment": "positive",
+    "score": 2
+  },
+  {
     "title": "India's IT stocks head for worst day in 4 months on AI disruption worries; TCS plunges 9%",
     "date": "2026-06-03T08:07:16+00:00",
     "url": "https://sg.finance.yahoo.com/news/indias-stocks-head-worst-day-064700433.html",
@@ -14,29 +38,5 @@
     "publisher": "Verdict",
     "sentiment": "positive",
     "score": 2
-  },
-  {
-    "title": "Is Amazon.com (AMZN) the Best Strong Buy Stock to Buy and Hold for the Next 5 Years?",
-    "date": "2026-05-29T00:51:44+00:00",
-    "url": "https://finance.yahoo.com/markets/stocks/articles/amazon-com-amzn-best-strong-005144570.html",
-    "publisher": "Insider Monkey",
-    "sentiment": "positive",
-    "score": 2
-  },
-  {
-    "title": "India Tests Banking, Aadhaar Systems Against Anthropic's Mythos AI Threats",
-    "date": "2026-05-27T17:44:14+00:00",
-    "url": "https://finance.yahoo.com/sectors/technology/articles/india-tests-banking-aadhaar-systems-174414422.html",
-    "publisher": "GuruFocus.com",
-    "sentiment": "positive",
-    "score": 2
-  },
-  {
-    "title": "TCS launches SovereignSecure Cloud in Europe for public sector",
-    "date": "2026-05-27T09:35:18+00:00",
-    "url": "https://www.verdict.co.uk/tcs-sovereignsecure-cloud-europe/",
-    "publisher": "Verdict",
-    "sentiment": "neutral",
-    "score": 0
   }
 ]
