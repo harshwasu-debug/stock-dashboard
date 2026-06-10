@@ -1,5 +1,13 @@
 [
   {
+    "title": "India’s IT Sector Braces for Slower Hiring in AI Era",
+    "date": "2026-06-10T03:04:21+00:00",
+    "url": "https://beincrypto.com/ai-agents-slow-hiring-industries/",
+    "publisher": "BeInCrypto",
+    "sentiment": "positive",
+    "score": 1
+  },
+  {
     "title": "AI agents could match human workforce in future, TCS Chairman Chandrasekaran says",
     "date": "2026-06-09T07:59:01+00:00",
     "url": "https://finance.yahoo.com/sectors/technology/articles/indias-tcs-chairman-expects-ai-074336738.html",
@@ -30,13 +38,5 @@
     "publisher": "Reuters",
     "sentiment": "negative",
     "score": -4
-  },
-  {
-    "title": "TCS and Mistral agree partnership for advanced AI model deployment",
-    "date": "2026-05-29T07:31:51+00:00",
-    "url": "https://www.verdict.co.uk/tcs-mistral-ai-model-deployment/",
-    "publisher": "Verdict",
-    "sentiment": "positive",
-    "score": 2
   }
 ]
