@@ -1,5 +1,29 @@
 [
   {
+    "title": "Anthropic taps TCS to scale its enterprise AI deployments",
+    "date": "2026-06-11T11:48:55+00:00",
+    "url": "https://finance.yahoo.com/sectors/technology/articles/anthropic-taps-tcs-scale-enterprise-114855999.html",
+    "publisher": "TechCrunch",
+    "sentiment": "positive",
+    "score": 2
+  },
+  {
+    "title": "India's TCS partners with Anthropic to drive enterprise AI scaling",
+    "date": "2026-06-11T05:31:10+00:00",
+    "url": "https://ca.news.yahoo.com/indias-tcs-partners-anthropic-drive-053110944.html",
+    "publisher": "Reuters",
+    "sentiment": "positive",
+    "score": 1
+  },
+  {
+    "title": "TCS' $2.3 Billion AI Revenue Signals Hiring Shift",
+    "date": "2026-06-10T19:50:57+00:00",
+    "url": "https://finance.yahoo.com/sectors/technology/articles/tcs-2-3-billion-ai-195057953.html",
+    "publisher": "GuruFocus.com",
+    "sentiment": "positive",
+    "score": 2
+  },
+  {
     "title": "India’s IT Sector Braces for Slower Hiring in AI Era",
     "date": "2026-06-10T03:04:21+00:00",
     "url": "https://beincrypto.com/ai-agents-slow-hiring-industries/",
@@ -14,29 +38,5 @@
     "publisher": "Reuters",
     "sentiment": "neutral",
     "score": 0
-  },
-  {
-    "title": "India’s TCS chair says AI agents may equal headcount, dampen hiring",
-    "date": "2026-06-09T07:43:36+00:00",
-    "url": "https://finance.yahoo.com/sectors/technology/articles/indias-tcs-chairman-expects-ai-074336415.html",
-    "publisher": "Reuters",
-    "sentiment": "negative",
-    "score": -2
-  },
-  {
-    "title": "Trump’s $100,000 H-1B Visa Application Fee Rejected by Judge",
-    "date": "2026-06-08T18:48:18+00:00",
-    "url": "https://finance.yahoo.com/sectors/technology/articles/trump-100-000-h-1b-174949452.html",
-    "publisher": "Bloomberg",
-    "sentiment": "positive",
-    "score": 2
-  },
-  {
-    "title": "India's IT stocks head for worst day in 4 months on AI disruption worries; TCS plunges 9%",
-    "date": "2026-06-03T08:07:16+00:00",
-    "url": "https://sg.finance.yahoo.com/news/indias-stocks-head-worst-day-064700433.html",
-    "publisher": "Reuters",
-    "sentiment": "negative",
-    "score": -4
   }
 ]
