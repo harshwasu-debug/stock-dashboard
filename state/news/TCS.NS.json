@@ -1,5 +1,13 @@
 [
   {
+    "title": "TCS partners with Anthropic to promote enterprise AI adoption",
+    "date": "2026-06-12T08:18:40+00:00",
+    "url": "https://www.verdict.co.uk/tcs-partners-with-anthropic/",
+    "publisher": "Verdict",
+    "sentiment": "positive",
+    "score": 2
+  },
+  {
     "title": "Anthropic taps TCS to scale its enterprise AI deployments",
     "date": "2026-06-11T11:48:55+00:00",
     "url": "https://finance.yahoo.com/sectors/technology/articles/anthropic-taps-tcs-scale-enterprise-114855999.html",
@@ -30,13 +38,5 @@
     "publisher": "BeInCrypto",
     "sentiment": "positive",
     "score": 1
-  },
-  {
-    "title": "AI agents could match human workforce in future, TCS Chairman Chandrasekaran says",
-    "date": "2026-06-09T07:59:01+00:00",
-    "url": "https://finance.yahoo.com/sectors/technology/articles/indias-tcs-chairman-expects-ai-074336738.html",
-    "publisher": "Reuters",
-    "sentiment": "neutral",
-    "score": 0
   }
 ]
