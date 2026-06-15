@@ -1,5 +1,29 @@
 [
   {
+    "title": "US Supreme Court rejects Tata challenge to $168 million award in trade secrets case",
+    "date": "2026-06-15T13:49:37+00:00",
+    "url": "https://ca.news.yahoo.com/us-supreme-court-rejects-tata-134527744.html",
+    "publisher": "Reuters",
+    "sentiment": "neutral",
+    "score": 0
+  },
+  {
+    "title": "As Anthropic suspends access to new models, India debates its AI future",
+    "date": "2026-06-14T03:00:00+00:00",
+    "url": "https://finance.yahoo.com/sectors/technology/articles/anthropic-suspends-access-models-india-030000333.html",
+    "publisher": "TechCrunch",
+    "sentiment": "neutral",
+    "score": 0
+  },
+  {
+    "title": "Rezolve AI Taps TCS Partnership And TraceWare Validation To Build Retail Trust",
+    "date": "2026-06-13T00:14:29+00:00",
+    "url": "https://finance.yahoo.com/markets/stocks/articles/rezolve-ai-taps-tcs-partnership-001429282.html",
+    "publisher": "Simply Wall St.",
+    "sentiment": "positive",
+    "score": 5
+  },
+  {
     "title": "TCS partners with Anthropic to promote enterprise AI adoption",
     "date": "2026-06-12T08:18:40+00:00",
     "url": "https://www.verdict.co.uk/tcs-partners-with-anthropic/",
@@ -14,29 +38,5 @@
     "publisher": "TechCrunch",
     "sentiment": "positive",
     "score": 2
-  },
-  {
-    "title": "India's TCS partners with Anthropic to drive enterprise AI scaling",
-    "date": "2026-06-11T05:31:10+00:00",
-    "url": "https://ca.news.yahoo.com/indias-tcs-partners-anthropic-drive-053110944.html",
-    "publisher": "Reuters",
-    "sentiment": "positive",
-    "score": 1
-  },
-  {
-    "title": "TCS' $2.3 Billion AI Revenue Signals Hiring Shift",
-    "date": "2026-06-10T19:50:57+00:00",
-    "url": "https://finance.yahoo.com/sectors/technology/articles/tcs-2-3-billion-ai-195057953.html",
-    "publisher": "GuruFocus.com",
-    "sentiment": "positive",
-    "score": 2
-  },
-  {
-    "title": "India’s IT Sector Braces for Slower Hiring in AI Era",
-    "date": "2026-06-10T03:04:21+00:00",
-    "url": "https://beincrypto.com/ai-agents-slow-hiring-industries/",
-    "publisher": "BeInCrypto",
-    "sentiment": "positive",
-    "score": 1
   }
 ]
