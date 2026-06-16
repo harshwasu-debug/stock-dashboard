@@ -1,5 +1,13 @@
 [
   {
+    "title": "India's TCS to take $70 million hit after US Supreme Court rejects appeal",
+    "date": "2026-06-16T04:40:43+00:00",
+    "url": "https://sg.finance.yahoo.com/news/indias-tcs-70-million-hit-040310433.html",
+    "publisher": "Reuters",
+    "sentiment": "neutral",
+    "score": 0
+  },
+  {
     "title": "US Supreme Court rejects Tata challenge to $168 million award in trade secrets case",
     "date": "2026-06-15T13:49:37+00:00",
     "url": "https://ca.news.yahoo.com/us-supreme-court-rejects-tata-134527744.html",
@@ -28,14 +36,6 @@
     "date": "2026-06-12T08:18:40+00:00",
     "url": "https://www.verdict.co.uk/tcs-partners-with-anthropic/",
     "publisher": "Verdict",
-    "sentiment": "positive",
-    "score": 2
-  },
-  {
-    "title": "Anthropic taps TCS to scale its enterprise AI deployments",
-    "date": "2026-06-11T11:48:55+00:00",
-    "url": "https://finance.yahoo.com/sectors/technology/articles/anthropic-taps-tcs-scale-enterprise-114855999.html",
-    "publisher": "TechCrunch",
     "sentiment": "positive",
     "score": 2
   }
