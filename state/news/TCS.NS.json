@@ -1,5 +1,13 @@
 [
   {
+    "title": "China, India See Top Firms Lose Market Cap Share in AI Lag",
+    "date": "2026-06-28T23:00:00+00:00",
+    "url": "https://finance.yahoo.com/markets/world-indices/articles/china-india-see-top-firms-230000570.html",
+    "publisher": "Bloomberg",
+    "sentiment": "negative",
+    "score": -1
+  },
+  {
     "title": "India's Nifty IT index at three-year low as bellwether Accenture flags weak outlook",
     "date": "2026-06-19T03:57:49+00:00",
     "url": "https://finance.yahoo.com/markets/stocks/articles/indian-stocks-tumble-bellwether-accenture-035749702.html",
@@ -20,22 +28,6 @@
     "date": "2026-06-16T04:40:43+00:00",
     "url": "https://sg.finance.yahoo.com/news/indias-tcs-70-million-hit-040310433.html",
     "publisher": "Reuters",
-    "sentiment": "neutral",
-    "score": 0
-  },
-  {
-    "title": "US Supreme Court rejects Tata challenge to $168 million award in trade secrets case",
-    "date": "2026-06-15T13:49:37+00:00",
-    "url": "https://ca.news.yahoo.com/us-supreme-court-rejects-tata-134527744.html",
-    "publisher": "Reuters",
-    "sentiment": "neutral",
-    "score": 0
-  },
-  {
-    "title": "As Anthropic suspends access to new models, India debates its AI future",
-    "date": "2026-06-14T03:00:00+00:00",
-    "url": "https://finance.yahoo.com/sectors/technology/articles/anthropic-suspends-access-models-india-030000333.html",
-    "publisher": "TechCrunch",
     "sentiment": "neutral",
     "score": 0
   }
