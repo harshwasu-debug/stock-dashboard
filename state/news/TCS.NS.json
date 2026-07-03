@@ -6,21 +6,5 @@
     "publisher": "Bloomberg",
     "sentiment": "negative",
     "score": -1
-  },
-  {
-    "title": "India's Nifty IT index at three-year low as bellwether Accenture flags weak outlook",
-    "date": "2026-06-19T03:57:49+00:00",
-    "url": "https://finance.yahoo.com/markets/stocks/articles/indian-stocks-tumble-bellwether-accenture-035749702.html",
-    "publisher": "Reuters",
-    "sentiment": "negative",
-    "score": -4
-  },
-  {
-    "title": "Indian IT stocks tumble as Accenture flags weak outlook",
-    "date": "2026-06-19T03:57:49+00:00",
-    "url": "https://sg.finance.yahoo.com/news/indian-stocks-tumble-accenture-flags-035749287.html",
-    "publisher": "Reuters",
-    "sentiment": "negative",
-    "score": -2
   }
 ]
