@@ -1,5 +1,29 @@
 [
   {
+    "title": "India's TCS rises after quarterly revenue beat",
+    "date": "2026-07-10T03:56:27+00:00",
+    "url": "https://sg.finance.yahoo.com/news/indias-tcs-rises-quarterly-revenue-035627890.html",
+    "publisher": "Reuters",
+    "sentiment": "positive",
+    "score": 3
+  },
+  {
+    "title": "Indian shares set to open higher; TCS in focus after revenue beat",
+    "date": "2026-07-10T02:37:10+00:00",
+    "url": "https://sg.finance.yahoo.com/news/indian-shares-set-open-higher-023710144.html",
+    "publisher": "Reuters",
+    "sentiment": "positive",
+    "score": 1
+  },
+  {
+    "title": "Tata Consultancy Services Ltd (BOM:532540) Q1 2027 Earnings Call Highlights: Strong Revenue ...",
+    "date": "2026-07-09T21:00:54+00:00",
+    "url": "https://finance.yahoo.com/markets/stocks/articles/tata-consultancy-services-ltd-bom-210054791.html",
+    "publisher": "GuruFocus.com",
+    "sentiment": "positive",
+    "score": 3
+  },
+  {
     "title": "India's TCS tops revenue estimates on weak rupee, banking boost",
     "date": "2026-07-09T11:47:05+00:00",
     "url": "https://sg.finance.yahoo.com/news/indias-tcs-beats-first-quarter-102955034.html",
@@ -14,29 +38,5 @@
     "publisher": "Reuters",
     "sentiment": "positive",
     "score": 1
-  },
-  {
-    "title": "Indian IT firms face muted Q1 as AI shift, weak demand weigh",
-    "date": "2026-07-06T09:45:37+00:00",
-    "url": "https://finance.yahoo.com/technology/articles/indian-firms-face-muted-q1-094537453.html",
-    "publisher": "Reuters",
-    "sentiment": "positive",
-    "score": 1
-  },
-  {
-    "title": "Investors Looking for Shelter From AI Storm Are Turning to India",
-    "date": "2026-07-05T02:00:00+00:00",
-    "url": "https://finance.yahoo.com/markets/stocks/articles/investors-looking-shelter-ai-storm-020000150.html",
-    "publisher": "Bloomberg",
-    "sentiment": "positive",
-    "score": 1
-  },
-  {
-    "title": "China, India See Top Firms Lose Market Cap Share in AI Lag",
-    "date": "2026-06-28T23:00:00+00:00",
-    "url": "https://finance.yahoo.com/markets/world-indices/articles/china-india-see-top-firms-230000570.html",
-    "publisher": "Bloomberg",
-    "sentiment": "negative",
-    "score": -1
   }
 ]
