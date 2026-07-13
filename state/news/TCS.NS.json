@@ -1,5 +1,21 @@
 [
   {
+    "title": "India's TCS bags multi-million contract from industrial giant ABB",
+    "date": "2026-07-13T06:37:08+00:00",
+    "url": "https://sg.finance.yahoo.com/news/indias-tcs-bags-multi-million-063708306.html",
+    "publisher": "Reuters",
+    "sentiment": "positive",
+    "score": 1
+  },
+  {
+    "title": "India's Tata Consultancy Services plans up to 8,900 AI deployment engineers, seeks AI acquisitions",
+    "date": "2026-07-12T08:36:49+00:00",
+    "url": "https://sg.finance.yahoo.com/news/indias-tata-consultancy-services-plans-083649966.html",
+    "publisher": "Reuters",
+    "sentiment": "positive",
+    "score": 1
+  },
+  {
     "title": "India's TCS rises after quarterly revenue beat",
     "date": "2026-07-10T03:56:27+00:00",
     "url": "https://sg.finance.yahoo.com/news/indias-tcs-rises-quarterly-revenue-035627890.html",
@@ -22,21 +38,5 @@
     "publisher": "GuruFocus.com",
     "sentiment": "positive",
     "score": 3
-  },
-  {
-    "title": "India's TCS tops revenue estimates on weak rupee, banking boost",
-    "date": "2026-07-09T11:47:05+00:00",
-    "url": "https://sg.finance.yahoo.com/news/indias-tcs-beats-first-quarter-102955034.html",
-    "publisher": "Reuters",
-    "sentiment": "neutral",
-    "score": 0
-  },
-  {
-    "title": "Indian shares stage partial rebound; Mideast tensions cap gains",
-    "date": "2026-07-09T03:56:52+00:00",
-    "url": "https://sg.finance.yahoo.com/news/indian-shares-seen-opening-higher-022543620.html",
-    "publisher": "Reuters",
-    "sentiment": "positive",
-    "score": 1
   }
 ]
