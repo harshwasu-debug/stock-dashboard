@@ -1,17 +1,17 @@
 {
   "sector": "Basic Materials",
   "industry": "Other Industrial Metals & Mining",
-  "trailing_pe": 14.949804,
-  "forward_pe": 9.190832,
+  "trailing_pe": 14.52341,
+  "forward_pe": 8.933674,
   "roe": 0.20403999,
   "debt_to_equity": 48.044,
   "profit_margin": 0.22619,
   "revenue_growth": -0.413,
   "earnings_growth": 0.922,
-  "dividend_yield": 12.61,
-  "market_cap": 1046682075136.0,
+  "dividend_yield": 12.7,
+  "market_cap": 1017396068352.0,
   "fifty_two_high": 795.0,
-  "fifty_two_low": 266.2,
+  "fifty_two_low": 260.1,
   "beta": 0.276,
-  "price_to_book": 2.1080403
+  "price_to_book": 2.0490577
 }
