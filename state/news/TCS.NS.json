@@ -1,5 +1,13 @@
 [
   {
+    "title": "TCS opens industrial AI lab in Bengaluru in partnership with Nvidia",
+    "date": "2026-07-16T11:03:14+00:00",
+    "url": "https://www.verdict.co.uk/tcs-opens-industrial-ai-lab/",
+    "publisher": "Verdict",
+    "sentiment": "positive",
+    "score": 3
+  },
+  {
     "title": "ABB taps TCS to overhaul global network operations with AI",
     "date": "2026-07-14T12:05:06+00:00",
     "url": "https://www.verdict.co.uk/abb-taps-tcs-network-operations/",
@@ -30,13 +38,5 @@
     "publisher": "Reuters",
     "sentiment": "positive",
     "score": 3
-  },
-  {
-    "title": "Indian shares set to open higher; TCS in focus after revenue beat",
-    "date": "2026-07-10T02:37:10+00:00",
-    "url": "https://sg.finance.yahoo.com/news/indian-shares-set-open-higher-023710144.html",
-    "publisher": "Reuters",
-    "sentiment": "positive",
-    "score": 1
   }
 ]
