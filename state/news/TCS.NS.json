@@ -1,11 +1,27 @@
 [
   {
+    "title": "Infosys Cuts Revenue Forecast as IT Service Demand Remains Muted",
+    "date": "2026-07-23T11:09:04+00:00",
+    "url": "https://finance.yahoo.com/technology/articles/infosys-cuts-revenue-forecast-demand-110904155.html",
+    "publisher": "Bloomberg",
+    "sentiment": "negative",
+    "score": -2
+  },
+  {
     "title": "TCS opens industrial AI lab in Bengaluru in partnership with Nvidia",
     "date": "2026-07-16T11:03:14+00:00",
     "url": "https://www.verdict.co.uk/tcs-opens-industrial-ai-lab/",
     "publisher": "Verdict",
     "sentiment": "positive",
     "score": 3
+  },
+  {
+    "title": "India's Wipro lags peers after earnings miss, weak forecast",
+    "date": "2026-07-16T10:23:01+00:00",
+    "url": "https://finance.yahoo.com/technology/articles/indias-wipro-misses-first-quarter-102301190.html",
+    "publisher": "Reuters",
+    "sentiment": "negative",
+    "score": -4
   },
   {
     "title": "ABB taps TCS to overhaul global network operations with AI",
@@ -22,21 +38,5 @@
     "publisher": "Reuters",
     "sentiment": "positive",
     "score": 1
-  },
-  {
-    "title": "India's Tata Consultancy Services plans up to 8,900 AI deployment engineers, seeks AI acquisitions",
-    "date": "2026-07-12T08:36:49+00:00",
-    "url": "https://sg.finance.yahoo.com/news/indias-tata-consultancy-services-plans-083649966.html",
-    "publisher": "Reuters",
-    "sentiment": "positive",
-    "score": 1
-  },
-  {
-    "title": "India's TCS rises after quarterly revenue beat",
-    "date": "2026-07-10T03:56:27+00:00",
-    "url": "https://sg.finance.yahoo.com/news/indias-tcs-rises-quarterly-revenue-035627890.html",
-    "publisher": "Reuters",
-    "sentiment": "positive",
-    "score": 3
   }
 ]
