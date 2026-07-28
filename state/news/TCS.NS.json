@@ -1,13 +1,5 @@
 [
   {
-    "title": "India's HCLTech to invest $1.48 billion in AI data center, open 5,000-seat tech hub",
-    "date": "2026-07-24T06:50:04+00:00",
-    "url": "https://finance.yahoo.com/technology/ai/articles/indias-hcltech-sarvam-set-1-065004157.html",
-    "publisher": "Reuters",
-    "sentiment": "positive",
-    "score": 1
-  },
-  {
     "title": "Infosys Cuts Revenue Forecast as IT Service Demand Remains Muted",
     "date": "2026-07-23T11:09:04+00:00",
     "url": "https://finance.yahoo.com/technology/articles/infosys-cuts-revenue-forecast-demand-110904155.html",
@@ -30,13 +22,5 @@
     "publisher": "Reuters",
     "sentiment": "negative",
     "score": -4
-  },
-  {
-    "title": "ABB taps TCS to overhaul global network operations with AI",
-    "date": "2026-07-14T12:05:06+00:00",
-    "url": "https://www.verdict.co.uk/abb-taps-tcs-network-operations/",
-    "publisher": "Verdict",
-    "sentiment": "neutral",
-    "score": 0
   }
 ]
