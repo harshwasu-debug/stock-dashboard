@@ -1,17 +1,17 @@
 {
   "sector": "Consumer Cyclical",
   "industry": "Auto Parts",
-  "trailing_pe": 40.398907,
-  "forward_pe": 22.358313,
+  "trailing_pe": 39.782017,
+  "forward_pe": 22.077057,
   "roe": 0.10114,
   "debt_to_equity": 43.908,
   "profit_margin": 0.03075,
   "revenue_growth": 0.165,
   "earnings_growth": 0.43,
   "dividend_yield": 0.34,
-  "market_cap": 1557147811840.0,
+  "market_cap": 1537559625728.0,
   "fifty_two_high": 155.25,
   "fifty_two_low": 89.7,
   "beta": 1.018,
-  "price_to_book": 3.8041577
+  "price_to_book": 3.7563033
 }

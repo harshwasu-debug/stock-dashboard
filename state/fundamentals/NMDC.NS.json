@@ -1,17 +1,17 @@
 {
   "sector": "Basic Materials",
   "industry": "Steel",
-  "trailing_pe": 9.907909,
-  "forward_pe": 8.188364,
+  "trailing_pe": 10.135773,
+  "forward_pe": 8.37668,
   "roe": 0.23363,
   "debt_to_equity": 18.802,
   "profit_margin": 0.23231001,
   "revenue_growth": 0.619,
   "earnings_growth": 0.377,
-  "dividend_yield": 4.19,
-  "market_cap": 737809268736.0,
+  "dividend_yield": 4.17,
+  "market_cap": 754777522176.0,
   "fifty_two_high": 97.49,
   "fifty_two_low": 68.19,
   "beta": 0.618,
-  "price_to_book": 2.1621065
+  "price_to_book": 2.2118309
 }
