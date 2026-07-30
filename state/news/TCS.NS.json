@@ -14,21 +14,5 @@
     "publisher": "Bloomberg",
     "sentiment": "negative",
     "score": -2
-  },
-  {
-    "title": "TCS opens industrial AI lab in Bengaluru in partnership with Nvidia",
-    "date": "2026-07-16T11:03:14+00:00",
-    "url": "https://www.verdict.co.uk/tcs-opens-industrial-ai-lab/",
-    "publisher": "Verdict",
-    "sentiment": "positive",
-    "score": 3
-  },
-  {
-    "title": "India's Wipro lags peers after earnings miss, weak forecast",
-    "date": "2026-07-16T10:23:01+00:00",
-    "url": "https://finance.yahoo.com/technology/articles/indias-wipro-misses-first-quarter-102301190.html",
-    "publisher": "Reuters",
-    "sentiment": "negative",
-    "score": -4
   }
 ]
