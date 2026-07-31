@@ -1,5 +1,10 @@
 # never upload secrets or local junk
 .streamlit/secrets.toml
+
+# assistant: local-mode notes and tasks. THIS REPO IS PUBLIC - personal notes
+# must never land here. The real store is a separate private repo.
+assistant_data/
+.pytest_cache/
 __pycache__/
 *.pyc
 st_test.log
