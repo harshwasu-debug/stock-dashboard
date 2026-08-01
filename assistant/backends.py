@@ -270,13 +270,29 @@ class GitHubBackend(Backend):
 
         if response.status_code == 404:
             raise BackendError(
-                f"{self.owner}/{self.repo} not found - check the name, and that "
-                "the token has access to it."
+                f"{self.owner}/{self.repo} not found. Either the name is wrong, or "
+                "the token's 'Only select repositories' list does not include it. "
+                "(A private repo the token cannot see looks exactly like a missing "
+                "one - GitHub does this on purpose.)"
             )
-        if response.status_code in (401, 403):
-            raise BackendError("GitHub rejected the token (401/403).")
+        if response.status_code == 401:
+            raise BackendError(
+                "GitHub rejected the token (401). It is wrong, revoked, or expired. "
+                "Generate a new one and update the app's secrets."
+            )
+        if response.status_code == 403:
+            # 403 is NOT necessarily the token. It is also what a corporate
+            # proxy, a sandbox, or an org policy returns. Quoting GitHub's own
+            # message beats guessing, so don't paraphrase it away.
+            raise BackendError(
+                f"GitHub returned 403 (forbidden): {_message_of(response)} "
+                "If the token authenticates elsewhere, suspect a network policy "
+                "between this app and GitHub rather than the token itself."
+            )
         if response.status_code != 200:
-            raise BackendError(f"GitHub returned {response.status_code}.")
+            raise BackendError(
+                f"GitHub returned {response.status_code}: {_message_of(response)}"
+            )
 
         info = response.json()
         if not info.get("private"):
@@ -289,6 +305,20 @@ class GitHubBackend(Backend):
     @property
     def describe(self) -> str:
         return f"GitHub: {self.owner}/{self.repo}@{self.branch}"
+
+
+def _message_of(response) -> str:
+    """
+    GitHub puts a human-readable reason in {"message": ...}. Surface it rather
+    than a bare status code - the difference between "bad credentials" and
+    "access blocked by policy" is the difference between a two-minute fix and
+    an hour of looking in the wrong place.
+    """
+    try:
+        message = response.json().get("message")
+    except Exception:
+        message = None
+    return str(message or response.text[:200] or "no detail given").strip()
 
 
 def json_bytes(payload) -> bytes:

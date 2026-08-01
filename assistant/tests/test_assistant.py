@@ -165,6 +165,89 @@ class TestLocalBackend:
         assert backend.list("notes") == ["notes/one.md", "notes/two.md"]
 
 
+class FakeResponse:
+    def __init__(self, status_code: int, payload=None, text: str = ""):
+        self.status_code = status_code
+        self._payload = payload
+        self.text = text or (json.dumps(payload) if payload is not None else "")
+
+    def json(self):
+        if self._payload is None:
+            raise ValueError("no json")
+        return self._payload
+
+
+class FakeSession:
+    def __init__(self, response):
+        self.response = response
+
+    def get(self, *args, **kwargs):
+        return self.response
+
+
+class TestGitHubBackendDiagnostics:
+    """
+    check() is the button you press on a phone when something is wrong, so its
+    message has to point at the real cause. These cases are taken from actual
+    responses seen during setup.
+    """
+
+    def _backend(self, response, monkeypatch):
+        from assistant.backends import GitHubBackend
+
+        backend = GitHubBackend("owner", "repo", "token")
+        monkeypatch.setattr(backend, "_session", lambda: FakeSession(response))
+        return backend
+
+    def test_404_explains_that_private_looks_like_missing(self, monkeypatch):
+        backend = self._backend(FakeResponse(404, {"message": "Not Found"}), monkeypatch)
+        with pytest.raises(BackendError) as exc:
+            backend.check()
+        assert "select repositories" in str(exc.value)
+
+    def test_401_blames_the_token(self, monkeypatch):
+        backend = self._backend(FakeResponse(401, {"message": "Bad credentials"}), monkeypatch)
+        with pytest.raises(BackendError) as exc:
+            backend.check()
+        assert "401" in str(exc.value) and "new one" in str(exc.value)
+
+    def test_403_quotes_github_and_does_not_blame_the_token(self, monkeypatch):
+        """
+        A real 403 seen in testing came from a network policy, not the token.
+        Saying 'GitHub rejected the token' there sends you hunting for a
+        problem that does not exist.
+        """
+        backend = self._backend(
+            FakeResponse(403, {"message": "access to this repository is not enabled"}),
+            monkeypatch,
+        )
+        with pytest.raises(BackendError) as exc:
+            backend.check()
+        message = str(exc.value)
+        assert "access to this repository is not enabled" in message
+        assert "network policy" in message
+        assert "rejected the token" not in message
+
+    def test_public_repo_is_called_out_as_a_warning(self, monkeypatch):
+        backend = self._backend(
+            FakeResponse(200, {"private": False, "name": "repo"}), monkeypatch
+        )
+        assert "WARNING" in backend.check()
+
+    def test_private_repo_is_reported_as_fine(self, monkeypatch):
+        backend = self._backend(
+            FakeResponse(200, {"private": True, "name": "repo"}), monkeypatch
+        )
+        result = backend.check()
+        assert "private" in result and "WARNING" not in result
+
+    def test_unparseable_body_still_produces_a_message(self, monkeypatch):
+        backend = self._backend(FakeResponse(500, None, text="<html>oops"), monkeypatch)
+        with pytest.raises(BackendError) as exc:
+            backend.check()
+        assert "500" in str(exc.value)
+
+
 # ---------------------------------------------------------------------------
 # store
 # ---------------------------------------------------------------------------
