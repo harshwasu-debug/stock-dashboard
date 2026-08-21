@@ -1,5 +1,13 @@
 [
   {
+    "title": "AI reshapes India's IT services sector contracts as clients demand more for less",
+    "date": "2026-08-20T23:02:07+00:00",
+    "url": "https://finance.yahoo.com/technology/ai/articles/ai-reshapes-indias-services-sector-230207347.html",
+    "publisher": "Reuters",
+    "sentiment": "positive",
+    "score": 1
+  },
+  {
     "title": "India's IT outsourcing industry feels AI's impact on hiring",
     "date": "2026-08-17T15:21:11+00:00",
     "url": "https://qz.com/india-outsourcing-industry-ai-impact-hiring-contracts-081226",
@@ -20,14 +28,6 @@
     "date": "2026-08-10T10:49:56+00:00",
     "url": "https://sg.finance.yahoo.com/news/indias-tcs-says-received-alerts-104707300.html",
     "publisher": "Reuters",
-    "sentiment": "neutral",
-    "score": 0
-  },
-  {
-    "title": "Microsoft Opens Fourth Data Center Region in India for Azure",
-    "date": "2026-08-06T12:52:48+00:00",
-    "url": "https://finance.yahoo.com/technology/ai/articles/microsoft-opens-fourth-data-center-125248171.html",
-    "publisher": "Bloomberg",
     "sentiment": "neutral",
     "score": 0
   }
