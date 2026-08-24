@@ -22,13 +22,5 @@
     "publisher": "Reuters",
     "sentiment": "negative",
     "score": -1
-  },
-  {
-    "title": "India's TCS says received alerts alleging exposure of some employee data",
-    "date": "2026-08-10T10:49:56+00:00",
-    "url": "https://sg.finance.yahoo.com/news/indias-tcs-says-received-alerts-104707300.html",
-    "publisher": "Reuters",
-    "sentiment": "neutral",
-    "score": 0
   }
 ]
