@@ -1,5 +1,29 @@
 [
   {
+    "title": "AI Will Deflate Value of IT Work by Up to 25%, Hexaware CEO Says",
+    "date": "2026-08-26T01:30:05+00:00",
+    "url": "https://finance.yahoo.com/technology/ai/articles/ai-deflate-value-25-hexaware-013005383.html",
+    "publisher": "Bloomberg",
+    "sentiment": "neutral",
+    "score": 0
+  },
+  {
+    "title": "Porsche sharpens focus on core business with MHP sale to India’s TCS",
+    "date": "2026-08-25T18:02:45+00:00",
+    "url": "https://www.just-auto.com/news/porsche-core-business-mhp-sale-tcs/",
+    "publisher": "Just Auto",
+    "sentiment": "neutral",
+    "score": 0
+  },
+  {
+    "title": "Porsche sells MHP consulting unit to TCS in $1.5 billion AI deal",
+    "date": "2026-08-25T12:54:25+00:00",
+    "url": "https://qz.com/porsche-mhp-tcs-ai-deal-082526",
+    "publisher": "Quartz",
+    "sentiment": "positive",
+    "score": 1
+  },
+  {
     "title": "AI reshapes India's IT services sector contracts as clients demand more for less",
     "date": "2026-08-20T23:02:07+00:00",
     "url": "https://finance.yahoo.com/technology/ai/articles/ai-reshapes-indias-services-sector-230207347.html",
@@ -14,13 +38,5 @@
     "publisher": "Quartz",
     "sentiment": "positive",
     "score": 2
-  },
-  {
-    "title": "India's Tata Group stocks extend slide after chairman Chandrasekaran quits",
-    "date": "2026-08-12T06:09:13+00:00",
-    "url": "https://sg.finance.yahoo.com/news/indias-tata-group-stocks-tumble-055139723.html",
-    "publisher": "Reuters",
-    "sentiment": "negative",
-    "score": -1
   }
 ]
