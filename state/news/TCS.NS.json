@@ -1,5 +1,13 @@
 [
   {
+    "title": "Porsche (XTRA:P911) Stock May Be 13% Undervalued Following Its MHP Sale",
+    "date": "2026-08-29T14:13:57+00:00",
+    "url": "https://finance.yahoo.com/markets/stocks/articles/porsche-xtra-p911-stock-may-141357892.html",
+    "publisher": "Simply Wall St.",
+    "sentiment": "positive",
+    "score": 1
+  },
+  {
     "title": "AI Will Deflate Value of IT Work by Up to 25%, Hexaware CEO Says",
     "date": "2026-08-26T01:30:05+00:00",
     "url": "https://finance.yahoo.com/technology/ai/articles/ai-deflate-value-25-hexaware-013005383.html",
@@ -30,13 +38,5 @@
     "publisher": "Reuters",
     "sentiment": "positive",
     "score": 1
-  },
-  {
-    "title": "India's IT outsourcing industry feels AI's impact on hiring",
-    "date": "2026-08-17T15:21:11+00:00",
-    "url": "https://qz.com/india-outsourcing-industry-ai-impact-hiring-contracts-081226",
-    "publisher": "Quartz",
-    "sentiment": "positive",
-    "score": 2
   }
 ]
