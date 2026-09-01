@@ -1,5 +1,29 @@
 [
   {
+    "title": "Rezolve AI Stock Drops After Net Loss Widens – CEO Says Google Is ‘Just The Beginning’ With More Deals In Pipeline",
+    "date": "2026-09-01T14:15:01+00:00",
+    "url": "https://stocktwits.com/news-articles/markets/equity/rzlv-stock-rezolve-ai-drops-net-loss-google-microsoft-licensing-deals/cZsoN9iRJMJ",
+    "publisher": "Stocktwits",
+    "sentiment": "negative",
+    "score": -2
+  },
+  {
+    "title": "Rezolve AI H1 Earnings Call Highlights",
+    "date": "2026-09-01T14:03:36+00:00",
+    "url": "https://www.marketbeat.com/instant-alerts/transcript-rezolve-ai-h1-earnings-call-highlights-2026-09-01/?utm_source=yahoofinance&utm_medium=yahoofinance",
+    "publisher": "MarketBeat",
+    "sentiment": "positive",
+    "score": 3
+  },
+  {
+    "title": "Tata Consultancy Services Stock And Other Indian Dividend Anchors Built For Steady Income",
+    "date": "2026-09-01T00:25:11+00:00",
+    "url": "https://finance.yahoo.com/markets/stocks/articles/tata-consultancy-services-stock-other-002511725.html",
+    "publisher": "Simply Wall St.",
+    "sentiment": "neutral",
+    "score": 0
+  },
+  {
     "title": "Porsche (XTRA:P911) Stock May Be 13% Undervalued Following Its MHP Sale",
     "date": "2026-08-29T14:13:57+00:00",
     "url": "https://finance.yahoo.com/markets/stocks/articles/porsche-xtra-p911-stock-may-141357892.html",
@@ -14,29 +38,5 @@
     "publisher": "Bloomberg",
     "sentiment": "neutral",
     "score": 0
-  },
-  {
-    "title": "Porsche sharpens focus on core business with MHP sale to India’s TCS",
-    "date": "2026-08-25T18:02:45+00:00",
-    "url": "https://www.just-auto.com/news/porsche-core-business-mhp-sale-tcs/",
-    "publisher": "Just Auto",
-    "sentiment": "neutral",
-    "score": 0
-  },
-  {
-    "title": "Porsche sells MHP consulting unit to TCS in $1.5 billion AI deal",
-    "date": "2026-08-25T12:54:25+00:00",
-    "url": "https://qz.com/porsche-mhp-tcs-ai-deal-082526",
-    "publisher": "Quartz",
-    "sentiment": "positive",
-    "score": 1
-  },
-  {
-    "title": "AI reshapes India's IT services sector contracts as clients demand more for less",
-    "date": "2026-08-20T23:02:07+00:00",
-    "url": "https://finance.yahoo.com/technology/ai/articles/ai-reshapes-indias-services-sector-230207347.html",
-    "publisher": "Reuters",
-    "sentiment": "positive",
-    "score": 1
   }
 ]
