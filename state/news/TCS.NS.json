@@ -1,5 +1,13 @@
 [
   {
+    "title": "Trump administration proposes axing grace period for H-1B visa holders after job loss",
+    "date": "2026-09-10T20:50:17+00:00",
+    "url": "https://finance.yahoo.com/news/trump-administration-proposes-waiving-grace-152322715.html",
+    "publisher": "Reuters",
+    "sentiment": "negative",
+    "score": -1
+  },
+  {
     "title": "Rezolve’s (RZLV) Revenue Surge Is Turning Heads, but at What Cost?",
     "date": "2026-09-03T08:41:32+00:00",
     "url": "https://finance.yahoo.com/markets/stocks/articles/rezolve-rzlv-revenue-surge-turning-084132796.html",
@@ -30,13 +38,5 @@
     "publisher": "Proactive",
     "sentiment": "positive",
     "score": 1
-  },
-  {
-    "title": "Rezolve AI Stock Drops After Net Loss Widens – CEO Says Google Is ‘Just The Beginning’ With More Deals In Pipeline",
-    "date": "2026-09-01T14:15:01+00:00",
-    "url": "https://stocktwits.com/news-articles/markets/equity/rzlv-stock-rezolve-ai-drops-net-loss-google-microsoft-licensing-deals/cZsoN9iRJMJ",
-    "publisher": "Stocktwits",
-    "sentiment": "negative",
-    "score": -2
   }
 ]
