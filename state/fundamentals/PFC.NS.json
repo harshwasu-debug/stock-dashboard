@@ -1,17 +1,17 @@
 {
   "sector": "Financial Services",
   "industry": "Credit Services",
-  "trailing_pe": 4.1244297,
-  "forward_pe": 3.6006637,
+  "trailing_pe": 4.0288863,
+  "forward_pe": 3.517699,
   "roe": null,
   "debt_to_equity": 536.837,
   "profit_margin": 0.54484004,
   "revenue_growth": 0.008,
   "earnings_growth": 0.021,
-  "dividend_yield": 4.81,
-  "market_cap": 1074183077888.0,
+  "dividend_yield": 4.79,
+  "market_cap": 1049432293376.0,
   "fifty_two_high": 486.5,
-  "fifty_two_low": 320.8,
+  "fifty_two_low": 313.35,
   "beta": 0.599,
-  "price_to_book": 0.7515377
+  "price_to_book": 0.73422116
 }
