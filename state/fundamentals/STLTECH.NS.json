@@ -1,17 +1,17 @@
 {
   "sector": "Technology",
   "industry": "Communication Equipment",
-  "trailing_pe": 173.72017,
-  "forward_pe": 24.450949,
+  "trailing_pe": 179.3167,
+  "forward_pe": 25.238655,
   "roe": null,
   "debt_to_equity": 85.626,
   "profit_margin": 0.04306,
   "revenue_growth": 0.874,
   "earnings_growth": 17.55,
   "dividend_yield": 0.0,
-  "market_cap": 411682897920.0,
+  "market_cap": 424945582080.0,
   "fifty_two_high": 1051.1,
   "fifty_two_low": 84.6,
   "beta": 1.596,
-  "price_to_book": 17.236294
+  "price_to_book": 17.791576
 }
